@@ -1,72 +1,116 @@
 <template>
     <div class="container">
-        <div class="banner">
-            <v-banner style="background-color: dodgerblue">
-                Jira Connection
-            </v-banner>
+        <v-toolbar class="banner">
+            Jira Dashboard
+        </v-toolbar>
+        <div class="row">
+            <p style="color: dodgerblue; font-size: 18px; margin-left: 15px" >Select already used projects or search for new:</p>
+            <div class="project-import" >
+                <v-select
+                    class="select-issueTypes"
+                    v-model="projectName"
+                    :items="projectNames"
+                    label="Select project"
+                    item-text="name"
+                    style="width: 25%; margin-left: 20px"
+
+                ></v-select>
+                <v-text-field v-model="projectName" append-icon="mdi-magnify" label="type project name ..." style="margin-left: 55px; width: 35%"></v-text-field>
+                <v-btn dark color="blue" @click="getIssueTypesByProjectName()" style="margin-left: 50px"> SEARCH </v-btn>
+                <p v-if="!isProjectSelected" style="color: red">No project selected. Please select a project</p>
+            </div>
         </div>
-        <div class="project-import">
-            <v-text-field v-model="projectName" append-icon="mdi-magnify" label="which project do you want to import ..."></v-text-field>
-            <v-btn dark color="blue" @click="getIssuesByProjectName()"> SEARCH </v-btn>
-        </div>
-        <v-dialog v-model="dialog" width="70%" >
-            <v-overlay v-if="loading">
+        <v-dialog v-model="dialogIssueTypes" width="70%" >
+            <div class="overlay" v-if="loading" >
                 <v-progress-circular indeterminate size="64">
                     Loading...
                 </v-progress-circular>
-                <v-btn @click="closeDialog()" style="margin-top: 200px">CLOSE</v-btn>
-            </v-overlay>
-            <v-data-table
-                v-model="selected"
-                :headers="headers"
-                :items="getData"
-                select-all
-                item-key="key"
-                class="elevation-1"
-            >
-<!--                <template v-slot:top>-->
-<!--                    <v-text-field v-model="search" append-icon="mdi-magnify" label=" Search in table..."></v-text-field>-->
-<!--                </template>-->
-                <template v-slot:items="props">
-                    <tr :active="props.selected" @click="props.selected = !props.selected">
+                <v-btn @click="closeDialogIssueTypes()" style="margin-top: 200px">CLOSE</v-btn>
+            </div>
+            <div v-if="!loading">
+                <v-data-table
+                    v-model="selectedIssuesTypes"
+                    :headers="headersIssueTypes"
+                    :items="getIssueTypes"
+                    item-key="item"
+                    select-all
+                    class="elevation-1"
+                    rows-per-page-text="IssueTypes per page"
+                >
+                    <template v-slot:items="props">
                         <td>
-                          <v-checkbox
-                                :input-value="props.selected"
+                            <v-checkbox
+                                v-model="props.selected"
                                 primary
                                 hide-details
-                          ></v-checkbox>
+                            ></v-checkbox>
                         </td>
-                        <td>{{ props.item.key }}</td>
-                        <td>{{ props.item.summary }}</td>
-                        <td>{{ props.item.issueType }}</td>
-                        <td>{{ props.item.projectName }}</td>
-                    </tr>
-                </template>
-            </v-data-table>
-            <v-btn @click="saveSelectedIssues()">Import</v-btn>
-            <v-btn @click="closeDialog()">Close</v-btn>
+                        <td>{{ props.item.item }}</td>
+                    </template>
+                </v-data-table>
+                <v-btn @click="getIssuesByTypes()">Search</v-btn>
+                <v-btn @click="closeDialogIssueTypes()">Close</v-btn>
+            </div>
+
+        </v-dialog>
+        <v-dialog v-model="dialogIssues" width="70%" >
+            <div class="overlay" v-if="loading" >
+                <v-progress-circular indeterminate size="64" style="margin-left: 30px">
+                    Loading...
+                </v-progress-circular>
+                <v-btn @click="closeDialogIssues()" style="margin-top: 200px">CLOSE</v-btn>
+            </div>
+            <div v-if="!loading">
+                <v-card>
+                    <v-card-title>
+                        <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
+                    </v-card-title>
+                    <v-data-table
+                        v-model="selectedIssues"
+                        :headers="headers"
+                        :items="getIssuesToSelect"
+                        select-all
+                        item-key="key"
+                        class="elevation-1"
+                        rows-per-page-text="Issues per page"
+                    >
+                        <template v-slot:items="props">
+                            <td>
+                                <v-checkbox
+                                    v-model="props.selected"
+                                    primary
+                                    hide-details
+                                ></v-checkbox>
+                            </td>
+                            <td>{{ props.item.key }}</td>
+                            <td>{{ props.item.summary }}</td>
+                            <td>{{ props.item.issueType }}</td>
+                            <td>{{ props.item.projectName }}</td>
+
+                        </template>
+                    </v-data-table>
+                </v-card>
+                <v-btn @click="importSelectedIssues()">Import</v-btn>
+                <v-btn @click="addSelectedIssues()">Add</v-btn>
+                <v-btn @click="closeDialogIssues()">Close</v-btn>
+            </div>
         </v-dialog>
         <div>
             <v-card class="v-card">
+                <v-card-title>
+                    <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
+                </v-card-title>
                 <v-data-table
                     :headers="headers"
-                    :items="getData"
+                    :items="getIssues"
                     item-key="key"
                     class="elevation-1"
-                    :footer-props="{
-               'items-per-page-text':'Issues per Page',
-               'items-per-page-options': [5, 10, 20, 50, -1],
-             }"
-                    :items-per-page="this.pageSize"
-                    :page="pageNum"
-                    :server-items-length="this.totalItems"
-                    @update:items-per-page="getItemPerPage"
-                    @update:page="getPageNum"
+                    :total-items="totalItems"
+                    rows-per-page-text="Issues per page"
+                    :rows-per-page-items="pagination.rowsPerPageItems"
+                    :pagination.sync="pagination"
+                    @update:pagination.self="getAllIssues()"
                 >
-<!--                    <template v-slot:top>-->
-<!--                        <v-text-field v-model="search" append-icon="mdi-magnify" label=" Search in table..."></v-text-field>-->
-<!--                    </template>-->
-
                     <template v-slot:items="props">
                         <td>{{ props.item.key }}</td>
                         <td>{{ props.item.summary }}</td>
@@ -75,10 +119,8 @@
                     </template>
                 </v-data-table>
             </v-card>
-
         </div>
     </div>
-
 </template>
 
 <script>
@@ -88,6 +130,9 @@ export default {
     name: "Issue",
     data() {
         return {
+            headersIssueTypes: [
+                {text: "Issue Type", value: "issueType"},
+            ],
             headers: [
                 {text: "Issue Name", value: "key"},
                 {text: "Summary", value: "summary"},
@@ -95,72 +140,131 @@ export default {
                 {text: "Project Name", value: "projectName"},
             ],
             issues: [],
+            issueTypes: [],
+            issuesToImportOrAdd: [],
             search:"",
             totalItems: 0,
             pageNum: 1,
             pageSize: 10,
             projectName: "",
-            dialog: false,
-            selected: [],
+            dialogIssueTypes: false,
+            dialogIssues: false,
+            selectedIssuesTypes: [],
+            selectedIssues: [],
             loading: false,
+            projectNames: [],
+            selectProjectName: "",
+            isProjectSelected: true,
+            pagination: {
+                sortBy: "key",
+                descending: false,
+                page: 1,
+                rowsPerPage: 10,
+                rowsPerPageItems: [5,10,25,50,100,{"text":"All","value":-1}]
+            },
         }
     },
     methods: {
-        getIssuesByProjectName(){
-            this.dialog = true
+        getIssueTypesByProjectName(){
+            if(this.projectName === ""){
+                return this.isProjectSelected = false
+            }else{
+                this.isProjectSelected = true
+                this.dialogIssueTypes = true
+                this.loading = true
+                IssueService.getIssueTypesByProjectName(this.projectName).then((response) => {
+                    this.issueTypes = response.data
+                    this.loading = false
+                    console.log(response.data)
+                    console.log(this.issueTypes)
+                    console.log("get issueTypes jira")
+                })
+            }
+
+        },
+        getIssuesByTypes(){
+            this.dialogIssueTypes = false
+            this.dialogIssues = true
             this.loading = true
-            IssueService.getIssuesByProjectName(this.projectName).then((response) => {
-                this.issues = response.data
+            IssueService.getIssuesByTypes(this.projectName, this.selectedIssuesTypes).then((response) => {
+                this.issuesToImportOrAdd = response.data
                 this.loading = false
                 console.log(response.data)
-                console.log(this.issues)
-                console.log("get from jira")
+                console.log(this.issuesToImportOrAdd)
+                console.log("get issues jira")
             })
         },
-        saveSelectedIssues(){
-            this.dialog = false
-            IssueService.saveIssues(this.selected).then((response) => {
+        importSelectedIssues(){
+            this.dialogIssues = false
+            IssueService.importIssues(this.selectedIssues).then((response) => {
                 this.issues = response.data
+                this.selectedIssues = []
                 this.getAllIssues()
             })
         },
-        closeDialog(){
-            this.dialog = false;
-        },
-        getAllIssues() {
-            IssueService.getAllIssues(this.pageNum, this.pageSize).then((response) => {
-                const {issues, totalItems} = response.data;
-                if(this.search === ""){
-                    this.issues = issues
-                    console.log(issues)
-                    console.log(this.issues)
-                    console.log("get from db")
-                    this.totalItems = totalItems
-                }else{
-                    this.filterData()
-                }
+        addSelectedIssues(){
+            this.dialogIssues = false
+            IssueService.addIssues(this.selectedIssues).then((response) => {
+                this.issues = response.data
+                this.selectedIssues = []
+                console.log(this.issues)
+                this.getAllIssues()
             })
         },
-        getItemPerPage(val) {
-            this.pageSize = val;
-            this.getAllIssues()
+        closeDialogIssueTypes(){
+            this.dialogIssueTypes = false;
         },
-        getPageNum(val) {
-            this.pageNum = val
-            this.getAllIssues()
+        closeDialogIssues(){
+            this.dialogIssues = false;
         },
+        getAllIssues() {
+            console.log(this.pagination.rowsPerPage)
+            IssueService.getAllIssues(this.pagination.page, this.pagination.rowsPerPage).then((response) => {
+                const {issues, totalItems} = response.data;
+                this.issues = issues
+                console.log(issues)
+                console.log(this.issues)
+                console.log("get from db")
+                this.totalItems = totalItems
+            })
+        },
+        getProjectNames(){
+            IssueService.getProjectNames().then((response) => {
+                this.projectNames = JSON.parse(JSON.stringify(response.data))
+            })
+        }
     },
     computed: {
-        getData(){
+        getIssueTypes() {
+            return this.issueTypes.map(item => ({
+                item }));
+        },
+        getIssues(){
+
             if(this.search === ""){
                 return this.issues
             }else{
-                return this.filterData
+                return this.filterIssues
             }
         },
-        filterData(){
+        getIssuesToSelect(){
+            if(this.search === ""){
+                return this.issuesToImportOrAdd
+            }else{
+                return this.filterIssuesToSelect
+            }
+        },
+        filterIssues(){
             return this.issues.filter(item =>{
-                return item.issueId.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+                return item.summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+                    || item.key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+                    || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+                    || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            })
+        },
+        filterIssuesToSelect(){
+            return this.issuesToImportOrAdd.filter(item =>{
+                return item.summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
                     || item.key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
                     || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
                     || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
@@ -169,25 +273,22 @@ export default {
     },
     created() {
         this.getAllIssues()
+        this.getProjectNames()
     },
 
 }
 </script>
 
 <style>
-.v-card{
-    width: 80%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 80px;
+.row{
+    margin-top: 30px;
 }
 .project-import{
-    margin-top: 40px;
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
+    display: -webkit-box;
+    display: -moz-box;
 }
-.banner{
-    color: wheat;
+.overlay{
+    margin-top: 20px;
+    margin-left: 45%;
 }
 </style>
