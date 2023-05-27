@@ -19,7 +19,7 @@
                     <v-radio
                         value="0"
                     ></v-radio>
-                    <v-text-field v-model="projectNameBySearch" append-icon="mdi-magnify" label="type project name ..." style="margin-left: 30px; width: 30%"
+                    <v-text-field v-model="projectNameBySearch" append-icon="mdi-magnify" label="type project key ..." style="margin-left: 30px; width: 30%"
                                   :disabled="searchForProject === '0'">
                     </v-text-field>
                     <v-radio
@@ -103,15 +103,25 @@
                         </template>
                     </v-data-table>
                 </v-card>
-                <v-btn dark color="blue" @click="importSelectedIssues()" style="margin-left: 65%">Import</v-btn>
-                <v-btn dark color="blue" @click="addSelectedIssues()">Add</v-btn>
+                <v-btn dark color="blue" @click="importSelectedIssues()" style="margin-left: 55%">Import</v-btn>
+                <v-btn dark color="blue" @click="addSelectedIssues()">Add to existing</v-btn>
                 <v-btn dark color="black" @click="closeDialogIssues()">Close</v-btn>
             </div>
         </v-dialog>
         <div>
             <v-card class="v-card">
                 <v-card-title>
-                    <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
+                    <div style="width: 40%">
+                        <v-select
+                            v-model="filterProjectName"
+                            :items="projectNames"
+                            label="Filter by project name"
+                            item-text="name"
+                        ></v-select>
+                    </div>
+                    <div style="width: 50%; margin-left: 25px">
+                        <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
+                    </div>
                 </v-card-title>
                 <v-data-table
                     :headers="headers"
@@ -156,6 +166,7 @@ export default {
             issueTypes: [],
             issuesToImportOrAdd: [],
             search:"",
+            filterProjectName: "",
             totalItems: 0,
             projectNameBySearch: "",
             projectNameBySelect: "",
@@ -181,10 +192,8 @@ export default {
     methods: {
         getIssueTypesByProjectName(){
             if(this.searchForProject === "0"){
-                console.log("select")
                 this.projectName = this.projectNameBySelect
             }else if(this.searchForProject === "1"){
-                console.log("search")
                 this.projectName = this.projectNameBySearch
             }
             if(this.projectName === "" || this.projectName === "-"){
@@ -197,8 +206,6 @@ export default {
                 IssueService.getIssueTypesByProjectName(this.projectName).then((response) => {
                     this.issueTypes = response.data
                     this.loading = false
-                    console.log(this.issueTypes)
-                    console.log("get issueTypes jira")
                     if(this.issueTypes.length === 0){
                         this.dialogIssueTypes = false
                         this.isProjectSelected = false
@@ -215,8 +222,6 @@ export default {
             IssueService.getIssuesByTypes(this.projectName, this.selectedIssuesTypes).then((response) => {
                 this.issuesToImportOrAdd = response.data
                 this.loading = false
-                console.log(this.issuesToImportOrAdd)
-                console.log("get issues jira")
             })
         },
         importSelectedIssues(){
@@ -242,19 +247,15 @@ export default {
             this.dialogIssues = false;
         },
         getAllIssues() {
-            console.log(this.pagination.rowsPerPage)
             IssueService.getAllIssues(this.pagination.page, this.pagination.rowsPerPage).then((response) => {
                 const {issues, totalItems} = response.data;
                 this.issues = issues
-                console.log(this.issues)
-                console.log("get from db")
                 this.totalItems = totalItems
             })
         },
         getProjectNames(){
             IssueService.getProjectNames().then((response) => {
                 this.projectNames = JSON.parse(JSON.stringify(response.data))
-                console.log(this.projectNames)
             })
         },
     },
@@ -264,10 +265,21 @@ export default {
                 item }));
         },
         getIssues(){
-            if(this.search === ""){
-                return this.issues
-            }else{
+            if(this.filterProjectName !== "" && this.filterProjectName !== "-"){
+                console.log(this.filterProjectName)
+                if(this.search !== ""){
+                    console.log(this.search)
+                    return this.filterIssues
+                }
+                return this.filterIssuesByProjectName
+            }
+            else if(this.search !== ""){
+                this.getAllIssues()
                 return this.filterIssues
+            }
+            else{
+                this.getAllIssues()
+                return this.issues
             }
         },
         getIssuesToSelect(){
@@ -284,6 +296,14 @@ export default {
                     || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
                     || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             })
+        },
+        filterIssuesByProjectName(){
+            var filtered = this.issues.filter(item =>{
+                return item.projectName.toLowerCase().indexOf(this.filterProjectName.toLowerCase()) > -1
+            })
+            // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+            this.issues = filtered
+            return filtered
         },
         filterIssuesToSelect(){
             return this.issuesToImportOrAdd.filter(item =>{
