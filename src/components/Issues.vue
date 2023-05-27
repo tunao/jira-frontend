@@ -165,6 +165,7 @@ export default {
             issues: [],
             issueTypes: [],
             issuesToImportOrAdd: [],
+            tempIssueForFilter: [],
             search:"",
             filterProjectName: "",
             totalItems: 0,
@@ -250,6 +251,7 @@ export default {
             IssueService.getAllIssues(this.pagination.page, this.pagination.rowsPerPage).then((response) => {
                 const {issues, totalItems} = response.data;
                 this.issues = issues
+                this.tempIssueForFilter = issues
                 this.totalItems = totalItems
             })
         },
@@ -266,19 +268,22 @@ export default {
         },
         getIssues(){
             if(this.filterProjectName !== "" && this.filterProjectName !== "-"){
-                console.log(this.filterProjectName)
                 if(this.search !== ""){
                     console.log(this.search)
                     return this.filterIssues
                 }
+                // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+                this.issues = this.tempIssueForFilter
                 return this.filterIssuesByProjectName
             }
             else if(this.search !== ""){
-                this.getAllIssues()
+                // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+                this.issues = this.tempIssueForFilter
                 return this.filterIssues
             }
             else{
-                this.getAllIssues()
+                // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+                this.issues = this.tempIssueForFilter
                 return this.issues
             }
         },
@@ -298,12 +303,11 @@ export default {
             })
         },
         filterIssuesByProjectName(){
-            var filtered = this.issues.filter(item =>{
+            // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+            this.issues = this.issues.filter(item =>{
                 return item.projectName.toLowerCase().indexOf(this.filterProjectName.toLowerCase()) > -1
             })
-            // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-            this.issues = filtered
-            return filtered
+            return this.issues
         },
         filterIssuesToSelect(){
             return this.issuesToImportOrAdd.filter(item =>{
@@ -335,9 +339,6 @@ export default {
     margin-left: 45%;
     width: 50%;
     height: 50%;
-}
-body {
-    font-family: arial;
 }
 p {
     font-weight: bold;
