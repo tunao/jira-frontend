@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const ISSUE_API_BASE_URL ='http://localhost:8080/hitec/jira'
+const ISSUE_API_BASE_URL ='http://localhost:8081/hitec/jira'
 
 class IssuesService {
 
@@ -37,6 +37,16 @@ class IssuesService {
                 size: size
             }
         });
+    }
+    saveFeedback(excelData){
+        return axios.get(ISSUE_API_BASE_URL + `/save_excel_data`, {
+            params: {
+                excelData: excelData
+            }
+        });
+    }
+    getFeedback(){
+        return axios.get(ISSUE_API_BASE_URL + `/feedback/load`);
     }
 }
 

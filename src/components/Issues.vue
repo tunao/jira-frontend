@@ -1,8 +1,6 @@
 <template>
     <div class="container">
-        <v-toolbar class="banner">
-            Jira Dashboard
-        </v-toolbar>
+
         <div class="row">
             <p style="color: dodgerblue; font-size: 18px; margin-left: 15px">Select already used projects or search for new:
             </p>
@@ -18,6 +16,10 @@
                     <v-radio value="1"></v-radio>
                     <v-btn dark color="blue" @click="getIssueTypesByProjectName()" style="margin-left: 40px"> SEARCH
                     </v-btn>
+
+
+
+
                 </div>
             </v-radio-group>
             <p v-if="!isProjectSelected" style="color: red">{{ warning }}</p>
@@ -113,6 +115,9 @@
 
 <script>
 import IssueService from "@/services/IssueService";
+// import ExcelJS from 'exceljs';
+// import axios from "axios";
+
 export default {
     // eslint-disable-next-line vue/multi-word-component-names
     name: "Issues",
@@ -153,9 +158,50 @@ export default {
                 rowsPerPage: 10,
                 rowsPerPageItems: [5,10,25,50,100,{"text":"All","value":-1}]
             },
+            // file: null,
+            // headersFeedback: [
+            //     { text: 'ID', value: 'ID' },
+            //     { text: 'Feedback', value: 'Feedback' }
+            // ],
+            // excelData: [],
+            // tableHeaders: []
         }
     },
     methods: {
+        // async handleFileChange(event) {
+        //     const file = event.target.files[0];
+        //     const reader = new FileReader();
+        //
+        //     reader.onload = async event => {
+        //         const data = new Uint8Array(event.target.result);
+        //         const workbook = new ExcelJS.Workbook();
+        //         await workbook.xlsx.load(data);
+        //
+        //         const worksheet = workbook.getWorksheet(1); // Adjust as needed
+        //
+        //         const excelData = [];
+        //         const headers = worksheet.getRow(1).values;
+        //
+        //         this.tableHeaders = headers;
+        //         console.log(this.tableHeaders)
+        //
+        //         worksheet.eachRow((row, rowNumber) => {
+        //             if (rowNumber !== 1) {
+        //                 const rowData = row.values;
+        //                 excelData.push(rowData);
+        //             }
+        //         });
+        //
+        //         this.excelData = excelData;
+        //         console.log(this.excelData)
+        //         const response = await axios.post('http://localhost:5000/save_excel_data', { data: this.excelData });
+        //         console.log(response.data.message);
+        //
+        //     };
+        //     console.log("test1")
+        //     reader.readAsArrayBuffer(file);
+        //     console.log("test2")
+        // },
         getIssueTypesByProjectName(){
             if(this.searchForProject === "0"){
                 this.projectName = this.projectNameBySelect
@@ -222,11 +268,18 @@ export default {
         },
         getProjectNames(){
             IssueService.getProjectNames().then((response) => {
+                console.log(response.data)
                 this.projectNames = JSON.parse(JSON.stringify(response.data))
             })
         },
     },
     computed: {
+        filteredExcelData() {
+            return this.excelData.filter(row => row[0] !== 'empty');
+        },
+        filtereHeaderData() {
+            return this.tableHeaders.filter(row => row[0] !== 'empty');
+        },
         getIssueTypes() {
             return this.issueTypes.map(item => ({
                 item }));
