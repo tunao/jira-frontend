@@ -62,7 +62,7 @@ export default {
 
                 this.excelData = excelData;
                 console.log(this.excelData)
-                const response = await axios.post('http://localhost:5000/save_excel_data', {data: this.excelData});
+                const response = await axios.post('http://localhost:8081/save_excel_data', {data: this.excelData});
                 console.log(response.data.message);
 
             };

@@ -36,7 +36,7 @@ export default {
     methods: {
         async saveAndClassifyFeedback() {
             try {
-                const response = await axios.post('http://localhost:5000/save-feedback', {
+                const response = await axios.post('http://localhost:8081/assign', {
                     feedback: this.feedback
                 });
                 this.classificationResult = response.data.message;
