@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Issues from "@/components/Issues.vue";
+import AssigenedFeedbackDetail from "@/components/AssigenedFeedbackDetail.vue";
 
 Vue.use(VueRouter)
 
@@ -8,7 +9,13 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: Issues
+    component: Issues,
+  },
+  {
+    path: '/assigned-feedback/:item', // Hier fügen Sie den Platzhalter hinzu
+    name: 'assigned-feedback',
+    component: AssigenedFeedbackDetail,
+    props: true,
   },
   {
     path: '/feedback',

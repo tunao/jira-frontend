@@ -48,6 +48,9 @@ class IssuesService {
     getFeedback(){
         return axios.get(ISSUE_API_BASE_URL + `/feedback/load`);
     }
+    getFeedbackAssigned(){
+        return axios.get(ISSUE_API_BASE_URL + `/feedback-assigned/load`);
+    }
 }
 
 export default new IssuesService()

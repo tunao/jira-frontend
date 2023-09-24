@@ -65,7 +65,8 @@
                         <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
                     </v-card-title>
                     <v-data-table v-model="selectedIssues" :headers="headers" :items="getIssuesToSelect" select-all
-                                  item-key="key" class="elevation-1" rows-per-page-text="Issues per page">
+                                  item-key="key" class="elevation-1" rows-per-page-text="Issues per page"
+                                  >
                         <template v-slot:items="props">
                             <td>
                                 <v-checkbox v-model="props.selected" primary hide-details></v-checkbox>
@@ -102,10 +103,12 @@
                               :rows-per-page-items="pagination.rowsPerPageItems" :pagination.sync="pagination"
                               @update:pagination.self="getAllIssues()">
                     <template v-slot:items="props">
+                      <tr @click="showDetails(props.item)">
                         <td>{{ props.item.key }}</td>
                         <td>{{ props.item.summary }}</td>
                         <td>{{ props.item.issueType }}</td>
                         <td>{{ props.item.projectName }}</td>
+                      </tr>
                     </template>
                 </v-data-table>
             </v-card>
@@ -115,6 +118,7 @@
 
 <script>
 import IssueService from "@/services/IssueService";
+
 // import ExcelJS from 'exceljs';
 // import axios from "axios";
 
@@ -167,7 +171,11 @@ export default {
             // tableHeaders: []
         }
     },
+
     methods: {
+      showDetails(item){
+          this.$router.push({ name: 'assigned-feedback', params: { item: item } });
+      },
         // async handleFileChange(event) {
         //     const file = event.target.files[0];
         //     const reader = new FileReader();

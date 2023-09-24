@@ -76,9 +76,15 @@ export default {
                 this.feedback = response.data
             })
         },
+        getFeedbackAssigned(){
+            IssueService.getFeedbackAssigned().then((response) => {
+                console.log(response.data)
+                this.feedback = response.data
+            })
+        },
     },
     created() {
-        this.getFeedback()
+        this.getFeedbackAssigned()
     },
 }
 </script>
