@@ -1,7 +1,8 @@
 <template>
   <div>
     <h1>Assigned Feedback: </h1>
-    <p>{{ $route.params.item.right_feedback_issue }}</p> <!-- Anzeige des übergebenen "item"-Werts -->
+<!--    TODO: should show max 3 feedbacks-->
+    <p>{{ $route.params.item.right_feedback_issue }}</p>
   </div>
 </template>
 

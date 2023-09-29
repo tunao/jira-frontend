@@ -3,7 +3,6 @@
     <v-toolbar class="banner">
       <router-link to="/">Issues</router-link>
       <router-link to="/feedback" style="margin-left: 10px">Feedback</router-link>
-      <router-link to="/assignment" style="margin-left: 10px">Assignment</router-link>
     </v-toolbar>
     <router-view style="margin-top: 40px"/>
   </div>
