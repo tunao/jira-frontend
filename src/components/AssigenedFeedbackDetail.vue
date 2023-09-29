@@ -1,8 +1,18 @@
 <template>
   <div>
-    <h1>Assigned Feedback: </h1>
-<!--    TODO: should show max 3 feedbacks-->
-    <p>{{ $route.params.item.right_feedback_issue }}</p>
+
+    <p>Assigned Feedback</p>
+    <v-data-table
+    >
+      <template >
+      </template>
+    </v-data-table>
+    <p>Assigned Feedback with TORE classification</p>
+    <v-data-table
+    >
+      <template >
+      </template>
+    </v-data-table>
   </div>
 </template>
 

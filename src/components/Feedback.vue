@@ -1,7 +1,7 @@
 <template>
   <div>
-    <input type="file" id="file-input" name="file-input" @change="handleFileChange"/>
-    <label id="file-input-label" for="file-input">Select a File</label>
+<!--    <input type="file" id="file-input" name="file-input" @change="handleFileChange"/>-->
+<!--    <label id="file-input-label" for="file-input">Select a File</label>-->
     <v-data-table
         :headers="tableHeaders"
         :items="feedback"

@@ -15,8 +15,12 @@
           <v-radio value="1"></v-radio>
           <v-btn dark color="blue" @click="getIssueTypesByProjectName()" style="margin-left: 40px"> SEARCH
           </v-btn>
-          <v-btn dark color="blue" style="margin-left: 40px"> Assign Feedback to Issues
-          </v-btn>
+          <div>
+            <v-btn dark color="blue" style="margin-left: 40px; display: block"> Assign Feedback to Issues
+            </v-btn>
+            <v-btn dark color="blue"> Assign Feedback to Issues with TORE classification
+            </v-btn>
+          </div>
         </div>
       </v-radio-group>
       <p v-if="!isProjectSelected" style="color: red">{{ warning }}</p>
