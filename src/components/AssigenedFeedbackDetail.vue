@@ -2,10 +2,10 @@
   <div>
     <p>Issue Key: {{ item.key }}</p>
     <p>Assigned Feedback</p>
-    <v-data-table
-        :headers="header"
-    >
-    </v-data-table>
+<!--    <v-data-table-->
+<!--        :headers="header"-->
+<!--    >-->
+<!--    </v-data-table>-->
     <p>Assigned Feedback with TORE classification</p>
     <v-data-table
         :headers="header"

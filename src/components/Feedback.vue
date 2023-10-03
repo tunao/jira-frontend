@@ -32,7 +32,7 @@
 
 // import ExcelJS from 'exceljs';
 // import axios from "axios";
-import IssueService from "@/services/IssueService";
+import FeedbackService from "@/services/FeedbackService";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -53,31 +53,31 @@ export default {
   },
   methods: {
     sendSelectedFeedbackName(){
-      IssueService.saveSelectedFeedback(this.selectedFeedbackFileName).then((response) => {
+      FeedbackService.saveSelectedFeedback(this.selectedFeedbackFileName).then((response) => {
         console.log(response.data)
         this.feedback = response.data
       })
     },
     sendSelectedAnnotationName(){
-      IssueService.assignToreCategoriesToFeedback(this.selectedAnnotationFileName).then((response) => {
+      FeedbackService.assignToreCategoriesToFeedback(this.selectedAnnotationFileName).then((response) => {
         console.log(response.data)
         this.feedback = response.data
       })
     },
     getFeedback(){
-      IssueService.getFeedback().then((response) => {
+      FeedbackService.getFeedback().then((response) => {
         console.log(response.data)
         this.feedback = response.data
       })
     },
     fetchFeedbackFileNames(){
-      IssueService.getFeedbackNames().then((response) => {
+      FeedbackService.getFeedbackNames().then((response) => {
         console.log(response.data)
         this.feedbackFileNames = response.data
       });
     },
     fetchAnnotationFileNames(){
-      IssueService.getAnnotationsNames().then((response) => {
+      FeedbackService.getAnnotationsNames().then((response) => {
         console.log(response.data)
         this.annotationFileNames = response.data
       });
@@ -122,26 +122,5 @@ export default {
 
 <style scoped>
 
-#file-input-label-feedback {
-  font-size: 1.3em;
-  padding: 10px 15px;
-  border: 1px solid black;
-  border-radius: 4%;
-}
-
-#file-input-feedback {
-  display: none;
-}
-
-#file-input-label-annotations {
-  font-size: 1.3em;
-  padding: 10px 15px;
-  border: 1px solid black;
-  border-radius: 4%;
-}
-
-#file-input-annotations {
-  display: none;
-}
 
 </style>

@@ -121,6 +121,7 @@
 
 <script>
 import IssueService from "@/services/IssueService";
+import FeedbackService from "@/services/FeedbackService";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -167,7 +168,7 @@ export default {
   },
   methods: {
     assignFeedbackToIssueWithTore(){
-      IssueService.assignFeedbackToIssues().then((response) => {
+      FeedbackService.assignFeedbackToIssues().then((response) => {
         console.log(response.data)
         this.issues = response.data
       });
