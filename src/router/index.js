@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Issues from "@/components/Issues.vue";
 import AssigenedFeedbackDetail from "@/components/AssigenedFeedbackDetail.vue";
+import ToreCategoriesForFeedback from "@/components/ToreCategoriesForFeedback.vue";
 
 Vue.use(VueRouter)
 
@@ -21,7 +22,13 @@ const routes = [
     path: '/feedback',
     name: 'feedback',
     component: () => import(/* webpackChunkName: "about" */ '../components/Feedback.vue')
-  }
+  },
+  {
+    path: '/tore-feedback/:item', // Hier fügen Sie den Platzhalter hinzu
+    name: 'tore-feedback',
+    component: ToreCategoriesForFeedback,
+    props: true,
+  },
 ]
 
 const router = new VueRouter({

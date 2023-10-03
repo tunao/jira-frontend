@@ -45,11 +45,26 @@ class IssuesService {
             }
         });
     }
-    getFeedback(){
-        return axios.get(ISSUE_API_BASE_URL + `/feedback/load`);
-    }
+    // getFeedback(){
+    //     return axios.get(ISSUE_API_BASE_URL + `/feedback/load`);
+    // }
     getFeedbackAssigned(){
         return axios.get(ISSUE_API_BASE_URL + `/feedback-assigned/load`);
+    }
+    saveSelectedFeedback(feedback_name){
+        return axios.get(ISSUE_API_BASE_URL + `/feedback/load/${feedback_name}` );
+    }
+
+    assignToreCategoriesToFeedback(annotation_name){
+        return axios.get(ISSUE_API_BASE_URL + `/assign_tore_to_feedback/${annotation_name}` );
+    }
+
+    getFeedback(){
+        return axios.get(ISSUE_API_BASE_URL + `/get_feedback`);
+    }
+
+    getAnnotations(){
+        return axios.get(ISSUE_API_BASE_URL + `/get_annotations`);
     }
 }
 
