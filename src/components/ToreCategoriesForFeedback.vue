@@ -1,16 +1,11 @@
 <template>
   <div>
-
-    <p>Assigned Feedback</p>
+    <p>Tore Classification for Feedback: "{{item.id}}"</p>
     <v-data-table
+        :items="item.tore"
     >
-      <template >
-      </template>
-    </v-data-table>
-    <p>Assigned Feedback with TORE classification</p>
-    <v-data-table
-    >
-      <template >
+      <template v-slot:items="props">
+        <td>{{ props.item }}</td>
       </template>
     </v-data-table>
   </div>

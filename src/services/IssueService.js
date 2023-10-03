@@ -38,18 +38,15 @@ class IssuesService {
             }
         });
     }
-    saveFeedback(excelData){
-        return axios.get(ISSUE_API_BASE_URL + `/save_excel_data`, {
-            params: {
-                excelData: excelData
-            }
-        });
-    }
-    // getFeedback(){
-    //     return axios.get(ISSUE_API_BASE_URL + `/feedback/load`);
+    // saveFeedback(excelData){
+    //     return axios.get(ISSUE_API_BASE_URL + `/save_excel_data`, {
+    //         params: {
+    //             excelData: excelData
+    //         }
+    //     });
     // }
-    getFeedbackAssigned(){
-        return axios.get(ISSUE_API_BASE_URL + `/feedback-assigned/load`);
+    assignFeedbackToIssues(){
+        return axios.post(ISSUE_API_BASE_URL + `/assign_feedback_to_issues_by_tore`);
     }
     saveSelectedFeedback(feedback_name){
         return axios.get(ISSUE_API_BASE_URL + `/feedback/load/${feedback_name}` );
@@ -59,12 +56,16 @@ class IssuesService {
         return axios.get(ISSUE_API_BASE_URL + `/assign_tore_to_feedback/${annotation_name}` );
     }
 
-    getFeedback(){
-        return axios.get(ISSUE_API_BASE_URL + `/get_feedback`);
+    getFeedbackNames(){
+        return axios.get(ISSUE_API_BASE_URL + `/get_feedback_names`);
     }
 
-    getAnnotations(){
-        return axios.get(ISSUE_API_BASE_URL + `/get_annotations`);
+    getAnnotationsNames(){
+        return axios.get(ISSUE_API_BASE_URL + `/get_annotations_names`);
+    }
+
+    getFeedback(){
+        return axios.get(ISSUE_API_BASE_URL + `/get_feedback`);
     }
 }
 

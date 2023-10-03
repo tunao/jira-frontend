@@ -13,7 +13,7 @@ const routes = [
     component: Issues,
   },
   {
-    path: '/assigned-feedback/:item', // Hier fügen Sie den Platzhalter hinzu
+    path: '/assigned-feedback/:item',
     name: 'assigned-feedback',
     component: AssigenedFeedbackDetail,
     props: true,
@@ -24,7 +24,7 @@ const routes = [
     component: () => import(/* webpackChunkName: "about" */ '../components/Feedback.vue')
   },
   {
-    path: '/tore-feedback/:item', // Hier fügen Sie den Platzhalter hinzu
+    path: '/feedback/:item',
     name: 'tore-feedback',
     component: ToreCategoriesForFeedback,
     props: true,

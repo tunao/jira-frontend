@@ -1,10 +1,5 @@
 <template>
   <div>
-<!--    <input type="file" id="file-input-feedback" name="file-input-feedback" accept=".json" @change="handleFileUploadFeedback"/>-->
-<!--    <label id="file-input-label-feedback" for="file-input-feedback">Select a File</label>-->
-
-<!--    <input type="file" id="file-input-annotations" name="file-input-annotations" accept=".json" @change="handleFileUploadAnnotation"/>-->
-<!--    <label id="file-input-label-annotations" for="file-input-annotations">Select a File</label>-->
     <div>
       <v-select
           v-model="selectedFeedbackFileName"
@@ -69,17 +64,26 @@ export default {
         this.feedback = response.data
       })
     },
-    fetchFeedbackFileNames(){
+    getFeedback(){
       IssueService.getFeedback().then((response) => {
+        console.log(response.data)
+        this.feedback = response.data
+      })
+    },
+    fetchFeedbackFileNames(){
+      IssueService.getFeedbackNames().then((response) => {
         console.log(response.data)
         this.feedbackFileNames = response.data
       });
     },
     fetchAnnotationFileNames(){
-      IssueService.getAnnotations().then((response) => {
+      IssueService.getAnnotationsNames().then((response) => {
         console.log(response.data)
         this.annotationFileNames = response.data
       });
+    },
+    showDetails(item) {
+      this.$router.push({ name: 'tore-feedback', params: { item: item } });
     },
     // async handleFileChange(event) {
     //   const file = event.target.files[0];
@@ -107,20 +111,11 @@ export default {
     //   reader.readAsArrayBuffer(file);
     //   this.$router.go();
     // },
-    showDetails(item) {
-      this.$router.push({name: 'tore-feedback', params: {item: item}});
-    },
-    // getFeedback() {
-    //   IssueService.getFeedback().then((response) => {
-    //     console.log(response.data)
-    //     this.feedback = response.data
-    //   })
-    // },
   },
   created() {
-    // this.getFeedback()
     this.fetchFeedbackFileNames();
     this.fetchAnnotationFileNames();
+    this.getFeedback();
   },
 }
 </script>

@@ -15,15 +15,15 @@
           <v-radio value="1"></v-radio>
           <v-btn dark color="blue" @click="getIssueTypesByProjectName()" style="margin-left: 40px"> SEARCH
           </v-btn>
-          <div>
-            <v-btn dark color="blue" style="margin-left: 40px; display: block"> Assign Feedback to Issues
-            </v-btn>
-            <v-btn dark color="blue"> Assign Feedback to Issues with TORE classification
-            </v-btn>
-          </div>
         </div>
       </v-radio-group>
       <p v-if="!isProjectSelected" style="color: red">{{ warning }}</p>
+      <div>
+        <v-btn dark color="blue"> Assign Feedback to Issues
+        </v-btn>
+        <v-btn dark color="blue" @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
+        </v-btn>
+      </div>
     </div>
     <v-dialog v-model="dialogIssueTypes" width="70%">
       <div class="overlay" v-if="loading">
@@ -166,6 +166,12 @@ export default {
     }
   },
   methods: {
+    assignFeedbackToIssueWithTore(){
+      IssueService.assignFeedbackToIssues().then((response) => {
+        console.log(response.data)
+        this.issues = response.data
+      });
+    },
     showDetails(item) {
       this.$router.push({name: 'assigned-feedback', params: {item: item}});
     },
