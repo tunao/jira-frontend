@@ -1,5 +1,9 @@
 <template>
   <div class="container">
+    <v-toolbar class="banner">
+      <router-link to="/feedback" style="margin-left: 10px">Feedback</router-link>
+    </v-toolbar>
+    <router-view style="margin-top: 40px"/>
     <div class="row">
       <p style="color: dodgerblue; font-size: 18px; margin-left: 15px">Select already used projects or search for new:
       </p>
@@ -19,10 +23,20 @@
       </v-radio-group>
       <p v-if="!isProjectSelected" style="color: red">{{ warning }}</p>
       <div>
-        <v-btn dark color="blue"> Assign Feedback to Issues
+        <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
         </v-btn>
         <v-btn dark color="blue" @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
         </v-btn>
+        <v-dialog v-model="loadAssignment">
+          <div class="overlay">
+            <v-progress-circular indeterminate size="64" style="margin-left: 30px">
+              Loading...
+            </v-progress-circular>
+            <v-btn dark color="black" @click="closeDialogIssues()"
+                   style="margin-top: 200px; margin-left: 85%">CLOSE
+            </v-btn>
+          </div>
+        </v-dialog>
       </div>
     </div>
     <v-dialog v-model="dialogIssueTypes" width="70%">
@@ -153,6 +167,7 @@ export default {
       selectedIssuesTypes: [],
       selectedIssues: [],
       loading: false,
+      loadAssignment: false,
       projectNames: [],
       isProjectSelected: true,
       warning: "",
@@ -167,10 +182,20 @@ export default {
     }
   },
   methods: {
-    assignFeedbackToIssueWithTore(){
+    assignFeedbackToIssues(){
+      this.loadAssignment = true
       FeedbackService.assignFeedbackToIssues().then((response) => {
         console.log(response.data)
         this.issues = response.data
+        this.loadAssignment = false
+      });
+    },
+    assignFeedbackToIssueWithTore(){
+      this.loadAssignment = true
+      FeedbackService.assignFeedbackToIssuesByTore().then((response) => {
+        console.log(response.data)
+        this.issues = response.data
+        this.loadAssignment = false
       });
     },
     showDetails(item) {

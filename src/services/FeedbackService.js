@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const ISSUE_API_BASE_URL ='http://localhost:8081/hitec/jira/feedback'
+const ISSUE_API_BASE_URL ='http://localhost:9647/hitec/jira/feedback'
 
 class FeedbackService {
 
@@ -12,6 +12,10 @@ class FeedbackService {
     //     });
     // }
     assignFeedbackToIssues(){
+        return axios.post(ISSUE_API_BASE_URL + `/assign_feedback_to_issues`);
+    }
+
+    assignFeedbackToIssuesByTore(){
         return axios.post(ISSUE_API_BASE_URL + `/assign_feedback_to_issues_by_tore`);
     }
     saveSelectedFeedback(feedback_name){
