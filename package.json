@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@mdi/font": "^7.3.67",
     "axios": "^1.4.0",
     "baklavajs": "^1.10.1",
     "bootstrap": "^5.2.3",

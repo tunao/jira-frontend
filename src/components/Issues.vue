@@ -1,9 +1,5 @@
 <template>
   <div class="container">
-    <v-toolbar class="banner">
-      <router-link to="/feedback" style="margin-left: 10px">Feedback</router-link>
-    </v-toolbar>
-    <router-view style="margin-top: 40px"/>
     <div class="row">
       <p style="color: dodgerblue; font-size: 18px; margin-left: 15px">Select already used projects or search for new:
       </p>
@@ -95,7 +91,7 @@
             </template>
           </v-data-table>
         </v-card>
-        <v-btn dark color="blue" @click="importSelectedIssues()" style="margin-left: 55%">Import</v-btn>
+        <v-btn dark color="blue" @click="importSelectedIssues()" style="margin-left: 55%">Import Issues</v-btn>
         <v-btn dark color="blue" @click="addSelectedIssues()">Add to existing</v-btn>
         <v-btn dark color="black" @click="closeDialogIssues()">Close</v-btn>
       </div>
@@ -199,7 +195,7 @@ export default {
       });
     },
     showDetails(item) {
-      this.$router.push({name: 'assigned-feedback', params: {item: item}});
+      this.$router.push({name: 'assigned_feedback', params: {item: item}});
     },
     getIssueTypesByProjectName() {
       if (this.searchForProject === "0") {

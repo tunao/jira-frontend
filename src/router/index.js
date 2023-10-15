@@ -1,34 +1,45 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Issues from "@/components/Issues.vue";
-import AssigenedFeedbackDetail from "@/components/AssigenedFeedbackDetail.vue";
-import ToreCategoriesForFeedback from "@/components/ToreCategoriesForFeedback.vue";
+import IssuesDetails from "@/components/IssuesDetails.vue";
+import FeedbackDetails from "@/components/FeedbackDetails.vue";
+import JiraDashboard from "@/JiraDashboard.vue";
+import Feedback from "@/components/Feedback.vue";
 
 Vue.use(VueRouter)
 
 const routes = [
   {
-    path: '/',
-    name: 'home',
-    component: Issues,
+    path: '/jira',
+    redirect: "/jira/issues",
   },
   {
-    path: '/assigned-feedback/:item',
-    name: 'assigned-feedback',
-    component: AssigenedFeedbackDetail,
-    props: true,
+    path: '/jira',
+    component: JiraDashboard,
+    children: [
+      {
+        path: 'issues',
+        component: Issues,
+      },
+      {
+        path: 'issues/:item',
+        name: "assigned_feedback",
+        component: IssuesDetails,
+        props: true,
+      },
+      {
+        path: 'feedback',
+        component: Feedback,
+      },
+      {
+        path: 'feedback/:item',
+        name: "tore_feedback",
+        component: FeedbackDetails,
+        props: true,
+      },
+    ]
   },
-  {
-    path: '/feedback',
-    name: 'feedback',
-    component: () => import(/* webpackChunkName: "about" */ '../components/Feedback.vue')
-  },
-  {
-    path: '/feedback/:item',
-    name: 'tore-feedback',
-    component: ToreCategoriesForFeedback,
-    props: true,
-  },
+
 ]
 
 const router = new VueRouter({
