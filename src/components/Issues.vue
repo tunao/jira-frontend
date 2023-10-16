@@ -1,5 +1,7 @@
 <template>
   <div class="container">
+
+
     <div class="row">
       <p class="headline-select-jira-project">
         Select already used projects or search for new:
@@ -134,6 +136,8 @@
         </v-data-table>
       </v-card>
     </div>
+
+
   </div>
 </template>
 
