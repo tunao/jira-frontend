@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <button class="back-button" @click="goBack">
       <i class="material-icons">arrow_back_ios</i>
     </button>
@@ -26,34 +26,6 @@
       </v-data-table>
     </v-card>
 
-    <v-dialog v-model="openFeedback" max-width="800">
-      <v-card>
-        <v-card-title>Add Feedback</v-card-title>
-        <v-card-text>
-          <v-data-table
-              v-model="selectedFeedback"
-              :headers="headerDialog"
-              :items="allFeedback"
-              item-key="id"
-          >
-            <template v-slot:items="props">
-              <td>
-                <v-checkbox v-model="props.selected" />
-              </td>
-              <td>{{ props.item.id }}</td>
-              <td>{{ props.item.text }}</td>
-            </template>
-          </v-data-table>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn @click="addSelectedFeedback" dark color="blue" style="margin-left: 50%">
-            Add selected Feedback to list
-          </v-btn>
-          <v-btn @click="openFeedback = false" dark color="black">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <v-card style="margin-top: 3%">
       <v-card-title>
         <p>Assigned Feedback with TORE classification</p>
@@ -75,42 +47,14 @@
         </template>
       </v-data-table>
     </v-card>
-
-    <v-dialog v-model="openFeedbackWithTore" max-width="800">
-      <v-card>
-        <v-card-title>Add Tore Feedback</v-card-title>
-        <v-card-text>
-          <v-data-table
-              v-model="selectedToreFeedback"
-              :headers="headerDialog"
-              :items="allFeedback"
-              item-key="id"
-          >
-            <template v-slot:items="props">
-              <td>
-                <v-checkbox v-model="props.selected" />
-              </td>
-              <td>{{ props.item.id }}</td>
-              <td>{{ props.item.text }}</td>
-            </template>
-          </v-data-table>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn @click="addSelectedToreFeedback" dark color="blue" style="margin-left: 50%">
-            Add Selected Feedback to list
-          </v-btn>
-          <v-btn @click="openFeedbackWithTore = false" dark color="black">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
+    <AddFeedbackToList :listWithTore="listWithTore" :openFeedbackDialog="openFeedbackDialog" :feedback="feedback" @toggleFeedback="toggleFeedback"/>
   </div>
 </template>
 
 <script>
 
 import FeedbackService from "@/services/FeedbackService";
-
+import AddFeedbackToList from "@/components/dialogs/AddFeedbackToList.vue";
 export default {
   props: ['item'],
   data() {
@@ -118,7 +62,7 @@ export default {
       allFeedback: [],
       feedback: this.item,
       selectedFeedback: [],
-      selectedToreFeedback: [],
+      listWithTore: false,
       header: [
         {text: "Id", value: "id"},
         {text: "Text", value: "text"},
@@ -129,9 +73,11 @@ export default {
         {text: "Text", value: "text"},
       ],
       feedbackToAdd: [],
-      openFeedback: false,
-      openFeedbackWithTore: false,
+      openFeedbackDialog: false,
     }
+  },
+  components:{
+    AddFeedbackToList,
   },
   methods:{
     goBack() {
@@ -160,32 +106,15 @@ export default {
           });
     },
     openAddDialogWithTore() {
-      this.openFeedbackWithTore = true;
+      this.listWithTore = true
+      this.openFeedbackDialog = true;
     },
     openAddDialog() {
-      this.openFeedback = true;
+      this.listWithTore = false
+      this.openFeedbackDialog = true;
     },
-    addSelectedToreFeedback() {
-      FeedbackService.addToreFeedback(this.item.key, this.selectedToreFeedback)
-          .then((response) => {
-            console.log(response.data.updated_feedback);
-            this.feedback.assigned_feedback_with_tore = response.data.updated_feedback
-            this.openFeedbackWithTore = false;
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-    },
-    addSelectedFeedback() {
-      FeedbackService.addFeedback(this.item.key, this.selectedFeedback)
-          .then((response) => {
-            console.log(response.data.updated_feedback);
-            this.feedback.assigned_feedback = response.data.updated_feedback
-            this.openFeedback = false;
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+    toggleFeedback(value) {
+      this.openFeedbackDialog = value;
     },
     getFeedback(){
       FeedbackService.getFeedback().then((response) => {
@@ -205,20 +134,23 @@ export default {
 
 
 <style scoped>
+.container{
+  margin-top: 50px;
+}
 .back-button {
   border: none;
   border-radius: 10px;
-  padding: 10px 20px;
+  padding: 10px 10px;
   font-size: 16px;
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 80px;
-  left: 20px;
+  top: 220px;
+  left: 120px;
 }
 
 .back-button:hover {
-  background-color: blue;
+  color: blue;
 }
 
 .add-button {

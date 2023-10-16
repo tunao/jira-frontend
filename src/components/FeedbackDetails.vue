@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <button class="back-button" @click="goBack">
       <i class="material-icons">arrow_back_ios</i>
     </button>
@@ -28,6 +28,9 @@ export default {
 </script>
 
 <style scoped>
+.container{
+  margin-top: 50px;
+}
 .back-button {
   border: none;
   border-radius: 10px;
@@ -36,12 +39,12 @@ export default {
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 80px;
-  left: 20px;
+  top: 220px;
+  left: 120px;
 }
 
 .back-button:hover {
-  background-color: blue;
+  color: blue;
 }
 
 </style>

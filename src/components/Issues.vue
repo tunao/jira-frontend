@@ -1,7 +1,8 @@
 <template>
   <div class="container">
     <div class="row">
-      <p style="color: dodgerblue; font-size: 18px; margin-left: 15px">Select already used projects or search for new:
+      <p class="headline-select-jira-project">
+        Select already used projects or search for new:
       </p>
       <v-radio-group v-model="searchForProject">
         <div class="project-import">
@@ -35,6 +36,8 @@
         </v-dialog>
       </div>
     </div>
+
+
     <v-dialog v-model="dialogIssueTypes" width="70%">
       <div class="overlay" v-if="loading">
         <v-progress-circular indeterminate size="64">
@@ -63,6 +66,8 @@
         </v-card>
       </div>
     </v-dialog>
+
+
     <v-dialog v-model="dialogIssues" width="70%">
       <div class="overlay" v-if="loading">
         <v-progress-circular indeterminate size="64" style="margin-left: 30px">
@@ -96,10 +101,13 @@
         <v-btn dark color="black" @click="closeDialogIssues()">Close</v-btn>
       </div>
     </v-dialog>
-    <div>
+
+
+    <div class="main-issue-table">
       <v-card class="v-card">
         <v-card-title>
-          <div style="width: 40%">
+          <h2>Jira Issues</h2>
+          <div class="filter-by-project">
             <v-select
                 v-model="filterProjectName"
                 :items="projectNames"
@@ -107,7 +115,7 @@
                 item-text="name"
             ></v-select>
           </div>
-          <div style="width: 50%; margin-left: 25px">
+          <div class="search-in-table">
             <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
           </div>
         </v-card-title>
@@ -336,8 +344,18 @@ export default {
 </script>
 
 <style>
-.row {
-  margin-top: 30px;
+.filter-by-project, .search-in-table{
+  margin-left: 30px;
+}
+.search-in-table{
+  width: 500px;
+}
+.headline-select-jira-project{
+  font-size: 18px;
+}
+
+.main-issue-table{
+  margin-top: 10px;
 }
 
 .project-import {
