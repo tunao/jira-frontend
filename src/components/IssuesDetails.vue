@@ -134,6 +134,9 @@ export default {
 
 
 <style scoped>
+h2{
+  text-align: center;
+}
 .table-header{
   margin-top: 30px;
   margin-bottom: 50px;
