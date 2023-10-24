@@ -1,110 +1,16 @@
 <template>
   <div class="container">
 
+    <LoadFeedbackFromDB></LoadFeedbackFromDB>
 
-    <div class="row">
-      <p class="headline-select-jira-project">
-        Select already used projects or search for new:
-      </p>
-      <v-radio-group v-model="searchForProject">
-        <div class="project-import">
-          <v-select class="select-issueTypes" v-model="projectNameBySelect" :items="projectNames"
-                    label="Select project" item-text="name" style="margin-left: 15px"
-                    :disabled="searchForProject === '1'"></v-select>
-          <v-radio value="0"></v-radio>
-          <v-text-field v-model="projectNameBySearch" append-icon="mdi-magnify" label="type project key ..."
-                        style="margin-left: 30px; width: 30%" :disabled="searchForProject === '0'">
-          </v-text-field>
-          <v-radio value="1"></v-radio>
-          <v-btn dark color="blue" @click="getIssueTypesByProjectName()" style="margin-left: 40px"> SEARCH
-          </v-btn>
-        </div>
-      </v-radio-group>
-      <p v-if="!isProjectSelected" style="color: red">{{ warning }}</p>
-      <div>
-        <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
-        </v-btn>
-        <v-btn dark color="blue" @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
-        </v-btn>
-        <v-dialog v-model="loadAssignment">
-          <div class="overlay">
-            <v-progress-circular indeterminate size="64" style="margin-left: 30px">
-              Loading...
-            </v-progress-circular>
-            <v-btn dark color="black" @click="closeDialogLoadAssignment()"
-                   style="margin-top: 200px; margin-left: 85%">CLOSE
-            </v-btn>
-          </div>
-        </v-dialog>
-      </div>
+    <div>
+      <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
+      </v-btn>
+      <v-btn dark color="blue" @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
+      </v-btn>
     </div>
 
-
-    <v-dialog v-model="dialogIssueTypes" width="70%">
-      <div class="overlay" v-if="loading">
-        <v-progress-circular indeterminate size="64">
-          Loading...
-        </v-progress-circular>
-        <v-btn dark color="black" @click="closeDialogIssueTypes()"
-               style="margin-top: 200px; margin-left: 85%">CLOSE
-        </v-btn>
-      </div>
-      <div v-if="!loading">
-        <v-card>
-          <v-card-title>
-            choose the issue-types you want to show of project: {{ projectName }}
-          </v-card-title>
-          <v-data-table v-model="selectedIssuesTypes" :headers="headersIssueTypes" :items="getIssueTypes"
-                        item-key="item" select-all class="elevation-1" rows-per-page-text="IssueTypes per page">
-            <template v-slot:items="props">
-              <td>
-                <v-checkbox v-model="props.selected" primary hide-details></v-checkbox>
-              </td>
-              <td>{{ props.item.item }}</td>
-            </template>
-          </v-data-table>
-          <v-btn dark color="blue" @click="getIssuesByTypes()" style="margin-left: 75%">Search</v-btn>
-          <v-btn dark color="black" @click="closeDialogIssueTypes()">Close</v-btn>
-        </v-card>
-      </div>
-    </v-dialog>
-
-
-    <v-dialog v-model="dialogIssues" width="70%">
-      <div class="overlay" v-if="loading">
-        <v-progress-circular indeterminate size="64" style="margin-left: 30px">
-          Loading...
-        </v-progress-circular>
-        <v-btn dark color="black" @click="closeDialogIssues()"
-               style="margin-top: 200px; margin-left: 85%">CLOSE
-        </v-btn>
-      </div>
-      <div v-if="!loading">
-        <v-card>
-          <v-card-title>
-            <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
-          </v-card-title>
-          <v-data-table v-model="selectedIssues" :headers="headers" :items="getIssuesToSelect" select-all
-                        item-key="key" class="elevation-1" rows-per-page-text="Issues per page"
-          >
-            <template v-slot:items="props">
-              <td>
-                <v-checkbox v-model="props.selected" primary hide-details></v-checkbox>
-              </td>
-              <td>{{ props.item.key }}</td>
-              <td>{{ props.item.summary }}</td>
-              <td>{{ props.item.description }}</td>
-              <td>{{ props.item.issueType }}</td>
-              <td>{{ props.item.projectName }}</td>
-            </template>
-          </v-data-table>
-        </v-card>
-        <v-btn dark color="blue" @click="importSelectedIssues()" style="margin-left: 55%">Import Issues</v-btn>
-        <v-btn dark color="blue" @click="addSelectedIssues()">Add to existing</v-btn>
-        <v-btn dark color="black" @click="closeDialogIssues()">Close</v-btn>
-      </div>
-    </v-dialog>
-
+    <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>
 
     <div class="main-issue-table">
       <v-card class="v-card">
@@ -112,11 +18,24 @@
           <h2>Jira Issues</h2>
           <div class="filter-by-project">
             <v-select
-                v-model="filterProjectName"
+                v-model="selectedProjects"
                 :items="projectNames"
-                label="Filter by project name"
-                item-text="name"
-            ></v-select>
+                label="Select Projectname"
+                multiple
+                item-text="projectName"
+                dense
+                @change="filterIssuesByProjectName()"
+            >
+              <template v-slot:item="{ item }">
+                <div class="select-projects">
+                  <v-checkbox v-model="item.selected"></v-checkbox>
+                  {{ item.projectName }}
+                  <v-btn class="delete-project">
+                    <i class="material-icons delete-icon" @click.stop="deleteProject(item)">delete</i>
+                  </v-btn>
+                </div>
+              </template>
+            </v-select>
           </div>
           <div class="search-in-table">
             <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
@@ -125,7 +44,7 @@
         <v-data-table :headers="headers" :items="getIssues" item-key="key" class="elevation-1"
                       :total-items="totalItems" rows-per-page-text="Issues per page"
                       :rows-per-page-items="pagination.rowsPerPageItems" :pagination.sync="pagination"
-                      @update:pagination.self="getAllIssues()">
+                      @update:pagination.self="getAllIssues()" :no-data-text="warning">
           <template v-slot:items="props">
             <tr @click="showDetails(props.item)">
               <td>{{ props.item.key }}</td>
@@ -133,19 +52,34 @@
               <td>{{ props.item.description }}</td>
               <td>{{ props.item.issueType }}</td>
               <td>{{ props.item.projectName }}</td>
+              <td>
+                <v-btn @click.stop="deleteIssue(props.item)">
+                  <i class="material-icons delete-icon" >delete</i>
+                </v-btn>
+              </td>
             </tr>
           </template>
         </v-data-table>
       </v-card>
     </div>
 
-
+    <v-dialog v-model="loadData">
+      <div class="overlay">
+        <v-progress-circular indeterminate size="64">
+          Loading...
+        </v-progress-circular>
+        <v-btn dark color="black" @click="closeDialogLoadAssignment()"
+               >CLOSE
+        </v-btn>
+      </div>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import IssueService from "@/services/IssueService";
-import FeedbackService from "@/services/FeedbackService";
+import LoadFeedbackFromDB from "@/components/LoadFeedbackFromDB.vue";
+import IssueFeedbackRelation from "@/services/IssueFeedbackRelation";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -163,26 +97,14 @@ export default {
         {text: "Project Name", value: "projectName"},
       ],
       issues: [],
-      issueTypes: [],
-      issuesToImportOrAdd: [],
       tempIssueForFilter: [],
       search: "",
       filterProjectName: "",
       totalItems: 0,
-      projectNameBySearch: "",
-      projectNameBySelect: "",
-      projectName: "",
-      searchForProject: "0",
-      dialogIssueTypes: false,
-      dialogIssues: false,
-      selectedIssuesTypes: [],
-      selectedIssues: [],
-      loading: false,
-      loadAssignment: false,
-      projectNames: [],
-      isProjectSelected: true,
-      warning: "",
+      loadData: false,
       feedback: [],
+      projectNames: [],
+      selectedProjects: [],
       pagination: {
         sortBy: "key",
         descending: false,
@@ -190,90 +112,72 @@ export default {
         rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
+      warning: "Select or import a project",
+      isProjectSelected: true,
     }
   },
+  components:{
+    LoadFeedbackFromDB,
+  },
   methods: {
+    deleteIssue(item){
+      IssueService.deleteIssue(item.projectName, item.key)
+          .then((response) => {
+            console.log(response.data);
+            this.getAllIssues()
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+    },
+    deleteProject(item) {
+      IssueService.deleteProject(item.projectName)
+          .then((response) => {
+            console.log(response.data);
+            this.getAllIssues()
+            this.getProjectNames()
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+    },
     assignFeedbackToIssues(){
-      this.loadAssignment = true
-      FeedbackService.assignFeedbackToIssues().then((response) => {
-        console.log(response.data)
-        this.issues = response.data
-        this.loadAssignment = false
-      });
+      if (this.issues.length < 1){
+        this.isProjectSelected = false
+      }else{
+        this.isProjectSelected = true
+        this.loadData = true
+        IssueFeedbackRelation.assignFeedbackToIssues().then((response) => {
+          console.log(response.data)
+          this.getAllIssues()
+          this.loadData = false
+        });
+      }
     },
     assignFeedbackToIssueWithTore(){
-      this.loadAssignment = true
-      FeedbackService.assignFeedbackToIssuesByTore().then((response) => {
-        console.log(response.data)
-        this.issues = response.data
-        this.loadAssignment = false
-      });
+      if (this.issues.length < 1){
+        this.isProjectSelected = false
+      }else {
+        this.isProjectSelected = true
+        this.loadData = true
+        IssueFeedbackRelation.assignFeedbackToIssuesByTore().then((response) => {
+          console.log(response.data)
+          this.getAllIssues()
+          this.loadData = false
+        });
+      }
     },
     showDetails(item) {
       this.$router.push({name: 'assigned_feedback', params: {item: item}});
     },
-    getIssueTypesByProjectName() {
-      if (this.searchForProject === "0") {
-        this.projectName = this.projectNameBySelect
-      } else if (this.searchForProject === "1") {
-        this.projectName = this.projectNameBySearch
-      }
-      if (this.projectName === "" || this.projectName === "-") {
-        this.warning = "No project selected. Please select a project"
-        return this.isProjectSelected = false
-      } else {
-        this.isProjectSelected = true
-        this.dialogIssueTypes = true
-        this.loading = true
-        IssueService.getIssueTypesByProjectName(this.projectName).then((response) => {
-          this.issueTypes = response.data
-          this.loading = false
-          if (this.issueTypes.length === 0) {
-            this.dialogIssueTypes = false
-            this.isProjectSelected = false
-            this.warning = "No project or issues in project found"
-          }
-          this.getProjectNames()
-        })
-      }
-    },
-    getIssuesByTypes() {
-      this.dialogIssueTypes = false
-      this.dialogIssues = true
-      this.loading = true
-      IssueService.getIssuesByTypes(this.projectName, this.selectedIssuesTypes).then((response) => {
-        this.issuesToImportOrAdd = response.data
-        this.loading = false
-      })
-    },
-    importSelectedIssues() {
-      this.dialogIssues = false
-      IssueService.importIssues(this.selectedIssues).then((response) => {
-        this.issues = response.data
-        this.selectedIssues = []
-        this.getAllIssues()
-      })
-    },
-    addSelectedIssues() {
-      this.dialogIssues = false
-      IssueService.addIssues(this.selectedIssues).then((response) => {
-        this.issues = response.data
-        this.selectedIssues = []
-        this.getAllIssues()
-      })
-    },
-    closeDialogIssueTypes() {
-      this.dialogIssueTypes = false;
-    },
-    closeDialogIssues() {
-      this.dialogIssues = false;
-    },
     closeDialogLoadAssignment() {
-      this.loadAssignment = false;
+      this.loadData = false;
     },
     getAllIssues() {
       IssueService.getAllIssues(this.pagination.page, this.pagination.rowsPerPage).then((response) => {
         const {issues, totalItems} = response.data;
+        console.log("new load")
+        console.log(issues)
         this.issues = issues
         this.tempIssueForFilter = issues
         this.totalItems = totalItems
@@ -281,27 +185,29 @@ export default {
     },
     getProjectNames() {
       IssueService.getProjectNames().then((response) => {
-        console.log(response.data)
-        this.projectNames = JSON.parse(JSON.stringify(response.data))
+        this.selectedProjects =[]
+        this.projectNames =[]
+        var data = response.data
+        data.forEach(project => {
+          if (project.selectedToAssign === true){
+            this.selectedProjects.push(project.projectName)
+          }
+          this.projectNames.push({ projectName: project.projectName, selected: project.selectedToAssign });
+        })
       })
     },
+    filterIssuesByProjectName() {
+      IssueService.filterIssuesToAssign(this.selectedProjects).then((response) => {
+        console.log(response.data)
+        this.getAllIssues()
+        this.getProjectNames()
+      })
+    },
+
   },
   computed: {
-    getIssueTypes() {
-      return this.issueTypes.map(item => ({
-        item
-      }));
-    },
     getIssues() {
-      if (this.filterProjectName !== "" && this.filterProjectName !== "-") {
-        if (this.search !== "") {
-          console.log(this.search)
-          return this.filterIssues
-        }
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.issues = this.tempIssueForFilter
-        return this.filterIssuesByProjectName
-      } else if (this.search !== "") {
+      if (this.search !== "") {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.issues = this.tempIssueForFilter
         return this.filterIssues
@@ -309,13 +215,6 @@ export default {
         // eslint-disable-next-line vue/no-side-effects-in-computed-properties
         this.issues = this.tempIssueForFilter
         return this.issues
-      }
-    },
-    getIssuesToSelect() {
-      if (this.search === "") {
-        return this.issuesToImportOrAdd
-      } else {
-        return this.filterIssuesToSelect
       }
     },
     filterIssues() {
@@ -326,13 +225,6 @@ export default {
             || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
       })
-    },
-    filterIssuesByProjectName() {
-      // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-      this.issues = this.issues.filter(item => {
-        return item.projectName.toLowerCase().indexOf(this.filterProjectName.toLowerCase()) > -1
-      })
-      return this.issues
     },
     filterIssuesToSelect() {
       return this.issuesToImportOrAdd.filter(item => {
@@ -353,32 +245,41 @@ export default {
 </script>
 
 <style>
+.delete-project{
+  margin-left: 100px
+}
+.select-projects{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.select-container{
+  display: flex;
+  justify-content: space-between;
+  width: 60%;
+}
+.select-annotation,
+.select-feedback {
+  width: 48%;
+}
+.warning{
+  color: red;
+}
 .filter-by-project, .search-in-table{
   margin-left: 30px;
 }
 .search-in-table{
   width: 500px;
 }
-.headline-select-jira-project{
-  font-size: 18px;
-}
-
 .main-issue-table{
   margin-top: 10px;
 }
-
-.project-import {
-  display: -webkit-box;
-  display: -moz-box;
-}
-
 .overlay {
   margin-top: 20px;
   margin-left: 45%;
   width: 50%;
   height: 50%;
 }
-
 p {
   font-weight: bold;
 }

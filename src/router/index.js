@@ -5,6 +5,7 @@ import IssuesDetails from "@/components/IssuesDetails.vue";
 import FeedbackDetails from "@/components/FeedbackDetails.vue";
 import JiraDashboard from "@/JiraDashboard.vue";
 import Feedback from "@/components/Feedback.vue";
+import ImportJiraProject from "@/components/ImportJiraProject.vue";
 
 Vue.use(VueRouter)
 
@@ -36,6 +37,10 @@ const routes = [
         name: "tore_feedback",
         component: FeedbackDetails,
         props: true,
+      },
+      {
+        path: 'jiraImport',
+        component: ImportJiraProject,
       },
     ]
   },

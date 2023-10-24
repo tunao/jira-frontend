@@ -1,35 +1,26 @@
 <template>
   <div class="container">
-    <div class="select-container">
-      <div class="select-feedback">
-        <v-select
-            v-model="selectedFeedbackFileName"
-            :items="feedbackFileNames"
-            label="Select Feedback"
-            @change="sendSelectedFeedbackName()"
-        ></v-select>
-      </div>
-      <div class="select-annotation">
-        <v-select
-            v-model="selectedAnnotationFileName"
-            :items="annotationFileNames"
-            label="Select Annotations"
-            @change="sendSelectedAnnotationName()"
-        ></v-select>
-      </div>
-    </div>
+
     <v-card class="table-header">
       <v-card-title>
         <h2>Feedback</h2>
+        <div class="search-in-table">
+          <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
+        </div>
       </v-card-title>
       <v-data-table
           :headers="tableHeaders"
-          :items="feedback"
+          :items="getFeedbackForFilter"
       >
         <template v-slot:items="props">
           <tr @click="showDetails(props.item)">
-            <td>{{ props.item.id }}</td>
             <td>{{ props.item.text }}</td>
+            <td>{{ limitDescriptionText(props.item.id, 8) }}</td>
+            <td>
+              <v-btn @click.stop="deleteFeedback(props.item)">
+                <i class="material-icons delete-icon" >delete</i>
+              </v-btn>
+            </td>
           </tr>
         </template>
       </v-data-table>
@@ -39,8 +30,6 @@
 
 <script>
 
-// import ExcelJS from 'exceljs';
-// import axios from "axios";
 import FeedbackService from "@/services/FeedbackService";
 
 export default {
@@ -50,54 +39,63 @@ export default {
     return {
       excelData: [],
       tableHeaders: [
-        {text: "ID", value: "id"},
-        {text: "Text", value: "text"}
+        {text: "Text", value: "text"},
+        {text: "ID", value: "id"}
       ],
       feedback: [],
-      feedbackFileNames:[],
-      selectedFeedbackFileName: '',
-      annotationFileNames:[],
-      selectedAnnotationFileName: '',
+      tempFeedbackForFilter: [],
+      search: "",
     }
   },
   methods: {
-    sendSelectedFeedbackName(){
-      FeedbackService.saveSelectedFeedback(this.selectedFeedbackFileName).then((response) => {
-        console.log(response.data)
-        this.feedback = response.data
-      })
-    },
-    sendSelectedAnnotationName(){
-      FeedbackService.assignToreCategoriesToFeedback(this.selectedAnnotationFileName).then((response) => {
-        console.log(response.data)
-        this.feedback = response.data
-      })
+    limitDescriptionText(text, limit) {
+      if (text.length > limit) {
+        return text.substring(0, limit);
+      } else {
+        return text;
+      }
     },
     getFeedback(){
       FeedbackService.getFeedback().then((response) => {
         console.log(response.data)
         this.feedback = response.data
+        this.tempFeedbackForFilter = response.data
       })
     },
-    fetchFeedbackFileNames(){
-      FeedbackService.getFeedbackNames().then((response) => {
-        console.log(response.data)
-        this.feedbackFileNames = response.data
-      });
-    },
-    fetchAnnotationFileNames(){
-      FeedbackService.getAnnotationsNames().then((response) => {
-        console.log(response.data)
-        this.annotationFileNames = response.data
-      });
+    deleteFeedback(item) {
+      FeedbackService.deleteFeedback(item.id)
+          .then((response) => {
+            console.log(response.data);
+            this.getFeedback()
+          })
+          .catch((error) => {
+            console.error(error);
+          });
     },
     showDetails(item) {
       this.$router.push({ name: 'tore_feedback', params: { item: item } });
     },
   },
+  computed: {
+    getFeedbackForFilter() {
+      if (this.search !== "") {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.feedback = this.tempFeedbackForFilter
+        return this.filterFeedback
+      } else {
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.feedback = this.tempFeedbackForFilter
+        return this.feedback
+      }
+    },
+    filterFeedback() {
+      return this.feedback.filter(item => {
+        return item.id.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || item.text.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+      })
+    },
+  },
   created() {
-    this.fetchFeedbackFileNames();
-    this.fetchAnnotationFileNames();
     this.getFeedback();
   },
 }
@@ -108,15 +106,6 @@ export default {
   margin-top: 20px;
 }
 
-.select-container{
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-}
-.select-annotation,
-.select-feedback {
-  width: 48%; /* Oder eine andere Breite, um Platz für den Abstand zu lassen */
-}
 .container{
   width: 90%;
   margin-top: 20px;
