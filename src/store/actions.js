@@ -146,8 +146,6 @@ export const actionToreAssignIssuesToFeedback = ({commit}) => {
     });
 };
 
-/////////////////////////////
-
 export const actionDeleteAllIssues = () => {
     return new Promise(() => {
         axios.delete(JIRA_DASHBOARD_BASE_URL_ISSUES+ `/remove_all_issues`)
@@ -180,6 +178,7 @@ export const actionFilterIssuesToAssign = ({commit}, {selectedProjectsArray}) =>
     return new Promise((resolve, reject) => {
         commit("setIsLoadingData", true);
         console.log("Filter Projects")
+        console.log(selectedProjectsArray)
         axios.post(JIRA_DASHBOARD_BASE_URL_ISSUES + `/issues_to_assign`, {
             selectedProjects: selectedProjectsArray,
         })
@@ -194,9 +193,6 @@ export const actionFilterIssuesToAssign = ({commit}, {selectedProjectsArray}) =>
             });
     });
 };
-
-////////////////////////////////
-
 
 export const actionDeleteProject = ({ commit }, projectName) => {
     return new Promise((resolve, reject) => {
@@ -550,5 +546,12 @@ export const actionGetToreUnassignedFeedback = ({commit}, issueKey) => {
             .catch(e => console.error("Error: "+e))
             .finally(() => {
             });
+    });
+};
+
+export const actionCancelLoading = ({commit}) => {
+    return new Promise(() => {
+        console.log("Cancel Loading")
+        commit("setIsLoadingData", false);
     });
 };
