@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+    <v-dialog v-model="isLoadingData">
+      <LoadingView/>
+    </v-dialog>
     <button class="back-button" @click="goBack">
       <i class="material-icons">arrow_back_ios</i>
     </button>
@@ -60,8 +63,9 @@
 <script>
 
 import AddFeedbackToIssue from "@/components/dialogs/AddFeedbackToIssue.vue";
+import LoadingView from "@/components/dialogs/LoadingView.vue";
 export default {
-  props: ['item'],
+
   data() {
     return {
       header: [
@@ -73,7 +77,7 @@ export default {
         {text: "Id", value: "id"},
         {text: "Text", value: "text"},
       ],
-      issue: this.item,
+      issue: this.$route.params.item,
       listWithTore: false,
       openFeedbackDialog: false,
       searchFeedback: "",
@@ -81,9 +85,22 @@ export default {
     }
   },
   components:{
+    LoadingView,
     AddFeedbackToIssue,
   },
+  watch: {
+    '$route' (to, from) {
+      if (to.params.item !== from.params.item) {
+        this.issue = to.params.item;
+        this.getAssignedFeedback()
+        this.getAssignedToreFeedback()
+      }
+    }
+  },
   computed:{
+    isLoadingData(){
+      return this.$store.state.isLoadingData
+    },
     getAssignedFeedbackFilter() {
       if (this.searchFeedback !== "") {
         return this.filterFeedbackFromIssue
