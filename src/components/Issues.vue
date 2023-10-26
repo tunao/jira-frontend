@@ -1,7 +1,19 @@
 <template>
   <div class="container">
 
-    <LoadFeedbackFromDB></LoadFeedbackFromDB>
+
+    <div class="import-elements">
+      <LoadFeedbackFromDB class="element1"></LoadFeedbackFromDB>
+      <v-btn dark color="blue" class="element2" @click="openImportDialog()"> Import Issues
+      </v-btn>
+      <v-dialog v-model="importDialog">
+        <ImportJiraProject class="import-dialog"/>
+        <v-btn dark color="black" @click="closeImportDialog()"
+        >CLOSE
+        </v-btn>
+      </v-dialog>
+    </div>
+
 
     <div>
       <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
@@ -19,16 +31,19 @@
           <div class="filter-by-project">
             <v-select
                 v-model="selectedProjects"
-                :items="projectNames"
+                :items="getImportedJiraProjects"
                 label="Select Projectname"
-                multiple
                 item-text="projectName"
+                multiple
                 dense
                 @change="filterIssuesByProjectName()"
             >
-              <template v-slot:item="{ item }">
-                <div class="select-projects">
-                  <v-checkbox v-model="item.selected"></v-checkbox>
+              <template v-slot:item="{ item }" >
+                <div class="select-projects" >
+                  <v-checkbox
+                      :input-value="item.selectedToAssign"
+                      @input="onSelect(!selectedProjects.includes(item))"
+                  ></v-checkbox>
                   {{ item.projectName }}
                   <v-btn class="delete-project">
                     <i class="material-icons delete-icon" @click.stop="deleteProject(item)">delete</i>
@@ -42,7 +57,7 @@
           </div>
         </v-card-title>
         <v-data-table :headers="headers" :items="getIssues" item-key="key" class="elevation-1"
-                      :total-items="totalItems" rows-per-page-text="Issues per page"
+                      :total-items="$store.state.totalIssueItems" rows-per-page-text="Issues per page"
                       :rows-per-page-items="pagination.rowsPerPageItems" :pagination.sync="pagination"
                       @update:pagination.self="getAllIssues()" :no-data-text="warning">
           <template v-slot:items="props">
@@ -63,7 +78,7 @@
       </v-card>
     </div>
 
-    <v-dialog v-model="loadData">
+    <v-dialog v-model="isLoadingData">
       <div class="overlay">
         <v-progress-circular indeterminate size="64">
           Loading...
@@ -77,9 +92,11 @@
 </template>
 
 <script>
-import IssueService from "@/services/IssueService";
+
+
 import LoadFeedbackFromDB from "@/components/LoadFeedbackFromDB.vue";
-import IssueFeedbackRelation from "@/services/IssueFeedbackRelation";
+import ImportJiraProject from "@/components/ImportJiraProject.vue";
+
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -96,15 +113,6 @@ export default {
         {text: "Issue Type", value: "issueType"},
         {text: "Project Name", value: "projectName"},
       ],
-      issues: [],
-      tempIssueForFilter: [],
-      search: "",
-      filterProjectName: "",
-      totalItems: 0,
-      loadData: false,
-      feedback: [],
-      projectNames: [],
-      selectedProjects: [],
       pagination: {
         sortBy: "key",
         descending: false,
@@ -112,131 +120,129 @@ export default {
         rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
+      search: "",
+      selectedProjects: [],
       warning: "Select or import a project",
       isProjectSelected: true,
+      importDialog: false,
     }
   },
   components:{
     LoadFeedbackFromDB,
+    ImportJiraProject
   },
   methods: {
-    deleteIssue(item){
-      IssueService.deleteIssue(item.projectName, item.key)
-          .then((response) => {
-            console.log(response.data);
-            this.getAllIssues()
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+    closeImportDialog(){
+      this.importDialog = false
+      this.getProjectNames()
+      this.getAllIssues()
     },
-    deleteProject(item) {
-      IssueService.deleteProject(item.projectName)
-          .then((response) => {
-            console.log(response.data);
-            this.getAllIssues()
-            this.getProjectNames()
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+    openImportDialog(){
+      this.importDialog = true
     },
-    assignFeedbackToIssues(){
-      if (this.issues.length < 1){
+    async deleteIssue(item){
+      try {
+        const projectName = item.projectName
+        const issueKey = item.key
+        await this.$store.dispatch("actionDeleteIssue", {projectName, issueKey});
+        this.getAllIssues();
+        this.getProjectNames();
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
+    async deleteProject(item) {
+      try {
+        await this.$store.dispatch("actionDeleteProject", item.projectName);
+        this.getAllIssues();
+        this.getProjectNames();
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    },
+    async assignFeedbackToIssues(){
+      if (this.$store.state.issues.length < 1){
         this.isProjectSelected = false
       }else{
         this.isProjectSelected = true
-        this.loadData = true
-        IssueFeedbackRelation.assignFeedbackToIssues().then((response) => {
-          console.log(response.data)
-          this.getAllIssues()
-          this.loadData = false
-        });
+        await this.$store.dispatch("actionAssignIssuesToFeedback")
+        this.getAllIssues()
       }
     },
-    assignFeedbackToIssueWithTore(){
-      if (this.issues.length < 1){
+    async assignFeedbackToIssueWithTore(){
+      if (this.$store.state.issues.length < 1){
         this.isProjectSelected = false
       }else {
         this.isProjectSelected = true
-        this.loadData = true
-        IssueFeedbackRelation.assignFeedbackToIssuesByTore().then((response) => {
-          console.log(response.data)
-          this.getAllIssues()
-          this.loadData = false
-        });
+        await this.$store.dispatch("actionToreAssignIssuesToFeedback")
+        this.getAllIssues()
       }
     },
     showDetails(item) {
       this.$router.push({name: 'assigned_feedback', params: {item: item}});
     },
     closeDialogLoadAssignment() {
-      this.loadData = false;
+      this.isLoadingData = false
     },
     getAllIssues() {
-      IssueService.getAllIssues(this.pagination.page, this.pagination.rowsPerPage).then((response) => {
-        const {issues, totalItems} = response.data;
-        console.log("new load")
-        console.log(issues)
-        this.issues = issues
-        this.tempIssueForFilter = issues
-        this.totalItems = totalItems
-      })
+      console.log("get All Issues")
+      let page = this.pagination.page
+      let size = this.pagination.rowsPerPage
+      this.$store.dispatch("actionGetAllIssues", {page, size})
     },
     getProjectNames() {
-      IssueService.getProjectNames().then((response) => {
-        this.selectedProjects =[]
-        this.projectNames =[]
-        var data = response.data
-        data.forEach(project => {
-          if (project.selectedToAssign === true){
-            this.selectedProjects.push(project.projectName)
-          }
-          this.projectNames.push({ projectName: project.projectName, selected: project.selectedToAssign });
-        })
-      })
+      this.$store.dispatch("actionGetImportedJiraProjects")
     },
-    filterIssuesByProjectName() {
-      IssueService.filterIssuesToAssign(this.selectedProjects).then((response) => {
-        console.log(response.data)
-        this.getAllIssues()
-        this.getProjectNames()
-      })
+    async filterIssuesByProjectName() {
+      console.log("selectedProjects")
+      console.log(this.selectedProjects)
+      let selectedProjects = this.selectedProjects
+      const selectedProjectsArray = selectedProjects.map(item => {
+        return item;
+      });
+      await this.$store.dispatch("actionFilterIssuesToAssign", {selectedProjectsArray})
+      this.getProjectNames()
+      this.getAllIssues()
     },
-
   },
   computed: {
+    isLoadingData(){
+      return this.$store.state.isLoadingData
+    },
+    getImportedJiraProjects(){
+      // eslint-disable-next-line
+      this.selectedProjects = []
+      this.$store.state.importedJiraProjects.forEach(project => {
+        if (project.selectedToAssign === true){
+          this.selectedProjects.push(project.projectName)
+        }
+      })
+      return this.$store.state.importedJiraProjects
+    },
     getIssues() {
+      console.log("filter issues")
       if (this.search !== "") {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.issues = this.tempIssueForFilter
         return this.filterIssues
       } else {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.issues = this.tempIssueForFilter
-        return this.issues
+        return this.$store.state.issues
       }
     },
     filterIssues() {
-      return this.issues.filter(item => {
-        return item.summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-      })
+      return this.$store.state.issues.filter(issue => {
+        const summary = issue.summary || "";
+        const key = issue.key || "";
+        const description = issue.description || "";
+        const issueType = issue.issueType || "";
+        const projectName = issue.projectName || "";
+        return summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+      });
     },
-    filterIssuesToSelect() {
-      return this.issuesToImportOrAdd.filter(item => {
-        return item.summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-      })
-    }
   },
-  created() {
+  mounted() {
     this.getAllIssues()
     this.getProjectNames()
   },
@@ -245,6 +251,22 @@ export default {
 </script>
 
 <style>
+.import-dialog{
+  background-color: white;
+}
+.import-elements {
+  display: flex;
+  justify-content: space-between;
+}
+
+.element1 {
+  flex: 0.7;
+}
+
+.element2 {
+  flex: 0.1;
+}
+
 .delete-project{
   margin-left: 100px
 }

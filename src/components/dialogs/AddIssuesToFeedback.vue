@@ -38,8 +38,7 @@
 </template>
 
 <script >
-import IssueService from "@/services/IssueService";
-import IssueFeedbackRelation from "@/services/IssueFeedbackRelation";
+
 
 export default {
   props: ['openIssuesDialog', 'feedback', 'listWithTore'],
@@ -53,11 +52,6 @@ export default {
         // {text: "Issue Type", value: "issueType"},
         // {text: "Project Name", value: "projectName"},
       ],
-      selectedFeedback: this.feedback,
-      selectedIssues: [],
-      allIssues: [],
-      totalItems: 0,
-      search: "",
       pagination: {
         sortBy: "key",
         descending: false,
@@ -65,6 +59,10 @@ export default {
         rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
+      selectedFeedback: this.feedback,
+      selectedIssues: [],
+      totalItems: 0,
+      search: "",
     }
   },
   computed:{
@@ -73,17 +71,13 @@ export default {
     },
     getIssues() {
       if (this.search !== "") {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.allIssues = this.tempIssueForFilter
         return this.filterIssues
       } else {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.allIssues = this.tempIssueForFilter
-        return this.allIssues
+        return this.$store.state.unassignedIssues
       }
     },
     filterIssues() {
-      return this.allIssues.filter(item => {
+      return this.$store.state.unassignedIssues.filter(item => {
         return item.summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             || item.key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
@@ -102,46 +96,25 @@ export default {
       this.selectedIssues = []
       this.$emit('toggleIssues', !this.openIssuesDialog);
     },
-    addSelectedIssues() {
+    async addSelectedIssues() {
+      const feedbackId = this.selectedFeedback.id
+      const selectedIssues = this.selectedIssues
       if (!this.listWithTore){
-        IssueFeedbackRelation.addIssueToFeedback(this.selectedFeedback.id, this.selectedIssues)
-            .then((response) => {
-              console.log(response.data);
-              // this.selectedIssue = response.data
-              this.toggleIssues();
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+        await this.$store.dispatch("actionAddIssueToFeedback", {feedbackId, selectedIssues})
+        this.toggleIssues();
       }else{
-        IssueFeedbackRelation.addIssueToToreFeedback(this.selectedFeedback.id, this.selectedIssues)
-            .then((response) => {
-              console.log(response.data);
-              // this.selectedIssue.assigned_feedback = response.data.updated_feedback
-              this.toggleIssues();
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+        await this.$store.dispatch("actionAddIssueToToreFeedback", {feedbackId, selectedIssues})
+        this.toggleIssues();
       }
     },
     getAllIssues() {
       console.log(this.listWithTore)
       if (!this.listWithTore){
-        IssueService.getUnassignedIssues(this.selectedFeedback.id).then((response) => {
-          const issues = response.data;
-          this.allIssues = issues.missing_issues
-          this.tempIssueForFilter = issues.missing_issues
+        this.$store.dispatch("actionGetUnassignedIssues", this.selectedFeedback.id)
           // this.totalItems = totalItems
-        })
       }else{
-        IssueService.getUnassignedToreIssues(this.selectedFeedback.id).then((response) => {
-          const issues = response.data;
-          console.log(issues.missing_issues)
-          this.allIssues = issues.missing_issues
-          this.tempIssueForFilter = issues.missing_issues
-          // this.totalItems = totalItems
-        })
+        this.$store.dispatch("actionGetUnassignedToreIssues", this.selectedFeedback.id)
+        //   // this.totalItems = totalItems
       }
     },
   },

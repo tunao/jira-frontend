@@ -38,10 +38,6 @@ const routes = [
         component: FeedbackDetails,
         props: true,
       },
-      {
-        path: 'jiraImport',
-        component: ImportJiraProject,
-      },
     ]
   },
 

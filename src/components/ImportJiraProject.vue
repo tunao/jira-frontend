@@ -4,31 +4,17 @@
       Select already used projects or search for new:
     </p>
     <div>
-      <v-select class="select-issueTypes" v-model="projectNameBySelect" :items="allJiraProjects"
+      <v-select class="select-issueTypes" v-model="projectName" :items="allAvailableJiraIssues"
                 label="Select project" item-text="name"
                 ></v-select>
       <v-btn dark color="blue" @click="getIssueTypesByProjectName()"> SEARCH
                 </v-btn>
       <v-btn dark color="red" @click="deleteAllIssues()">Remove all Issues</v-btn>
     </div>
-<!--    <v-radio-group v-model="searchForProject">-->
-<!--      <div class="project-import">-->
-<!--        <v-select class="select-issueTypes" v-model="projectNameBySelect" :items="projectNames"-->
-<!--                  label="Select project" item-text="name" style="margin-left: 15px"-->
-<!--                  :disabled="searchForProject === '1'"></v-select>-->
-<!--        <v-radio value="0"></v-radio>-->
-<!--        <v-text-field v-model="projectNameBySearch" append-icon="mdi-magnify" label="type project key ..."-->
-<!--                      style="margin-left: 30px; width: 30%" :disabled="searchForProject === '0'">-->
-<!--        </v-text-field>-->
-<!--        <v-radio value="1"></v-radio>-->
-<!--        <v-btn dark color="blue" @click="getIssueTypesByProjectName()" style="margin-left: 40px"> SEARCH-->
-<!--        </v-btn>-->
-<!--      </div>-->
-<!--    </v-radio-group>-->
     <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>
 
     <v-dialog v-model="openDialog" width="70%">
-      <div class="overlay" v-if="loading">
+      <div class="overlay" v-if="isLoadingData">
         <v-progress-circular indeterminate size="64">
           Loading...
         </v-progress-circular>
@@ -36,7 +22,7 @@
                >CLOSE
         </v-btn>
       </div>
-      <div v-if="!loading">
+      <div v-if="!isLoadingData">
         <div v-if="dialogIssues">
           <v-card>
             <v-card-title>
@@ -57,7 +43,6 @@
               </template>
             </v-data-table>
           </v-card>
-<!--          <v-btn dark color="blue" @click="importSelectedIssues()" style="margin-left: 55%">Import Issues</v-btn>-->
           <v-btn dark color="blue" @click="addSelectedIssues()">Add Issues</v-btn>
           <v-btn dark color="black" @click="closeDialogIssues()">Close</v-btn>
         </div>
@@ -88,31 +73,12 @@
 
 <script>
 
-import IssueService from "@/services/IssueService";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: "SearchForJiraProject",
   data() {
     return {
-      no_results_text: "test message",
-      searchForProject: "0",
-      projectNameBySelect: "",
-      projectNames: [],
-      issueTypes: [],
-      issuesToImportOrAdd: [],
-      projectNameBySearch: "",
-      isProjectSelected: true,
-      warning: "",
-      projectName: "",
-      dialogIssueTypes: false,
-      dialogIssues: false,
-      openDialog: false,
-      loading: false,
-      search: "",
-      selectedIssuesTypes: [],
-      selectedIssues: [],
-      allJiraProjects: [],
       headersIssueTypes: [
         {text: "Issue Type", value: "issueType"},
       ],
@@ -123,40 +89,47 @@ export default {
         {text: "Issue Type", value: "issueType"},
         {text: "Project Name", value: "projectName"},
       ],
+      isProjectSelected: true,
+      warning: "",
+      projectName: "",
+      dialogIssueTypes: false,
+      dialogIssues: false,
+      openDialog: false,
+      search: "",
+      selectedIssuesTypes: [],
+      selectedIssues: [],
     }
   },
   methods:{
     getAllJiraProjects() {
-
-      IssueService.getAllJiraProjects().then(response => {
-        this.allJiraProjects = response.data
-      })
+      this.$store.dispatch("actionGetAllJiraProjects")
     },
     getIssuesByTypes() {
       this.dialogIssueTypes = false
       this.dialogIssues = true
-      this.loading = true
-      IssueService.getIssuesByTypes(this.projectName, this.selectedIssuesTypes).then((response) => {
-        this.issuesToImportOrAdd = response.data
-        this.loading = false
-      })
+      console.log(this.selectedIssuesTypes)
+      let projectName = this.projectName
+      let issueTypes = this.selectedIssuesTypes
+      const selectedIssuesTypesArray = issueTypes.map(item => {
+        return item;
+      });
+      this.$store.dispatch('actionGetIssuesByProjectNameFromJira', {projectName, selectedIssuesTypesArray});
     },
     deleteAllIssues() {
       this.dialogIssues = false
       this.openDialog = false
-      // IssueService.importIssues(this.selectedIssues).then((response) => {
-      IssueService.deleteAllIssues().then((response) => {
-        console.log(response.data)
-        this.selectedIssues = []
-      })
+      this.$store.dispatch("actionDeleteAllIssues")
+      this.selectedIssues = []
     },
     addSelectedIssues() {
       this.dialogIssues = false
       this.openDialog = false
-      IssueService.addIssues(this.selectedIssues).then((response) => {
-        console.log(response.data)
-        this.selectedIssues = []
-      })
+      let selectedIssues = this.selectedIssues
+      const selectedIssuesArray = selectedIssues.map(item => {
+        return item;
+      });
+      this.$store.dispatch("actionAddSelectedIssues", {selectedIssuesArray})
+      this.selectedIssues = []
     },
     closeDialogIssueTypes() {
       this.openDialog = false
@@ -167,56 +140,44 @@ export default {
       this.dialogIssues = false;
     },
     getIssueTypesByProjectName() {
-      if (this.searchForProject === "0") {
-        this.projectName = this.projectNameBySelect
-      } else if (this.searchForProject === "1") {
-        this.projectName = this.projectNameBySearch
-      }
-      if (this.projectName === "" || this.projectName === "-") {
+      if (this.projectName === "") {
         this.warning = "No project selected. Please select a project"
         return this.isProjectSelected = false
       } else {
         this.isProjectSelected = true
         this.openDialog = true
         this.dialogIssueTypes = true
-        this.loading = true
-        IssueService.getIssueTypesByProjectName(this.projectName).then((response) => {
-          this.issueTypes = response.data
-          this.loading = false
-          if (this.issueTypes.length === 0) {
-            this.dialogIssueTypes = false
-            this.isProjectSelected = false
-            this.warning = "No project or issues in project found"
-          }
-          this.getProjectNames()
-        })
+        console.log("1")
+        this.$store.dispatch("actionGetIssueTypesByProjectNameFromJira", this.projectName)
       }
-    },
-    getProjectNames() {
-      IssueService.getProjectNames().then((response) => {
-        var data = response.data
-        data.forEach(project => {
-          this.projectNames.push(project.projectName)
-        })
-      })
     },
   },
   computed:{
-    getIssueTypes() {
-      return this.issueTypes.map(item => ({
-        item
-      }));
+    isLoadingData() {
+      return this.$store.state.isLoadingData
     },
-    getIssuesToSelect() {
-      if (this.search === "") {
-        return this.issuesToImportOrAdd
-      } else {
-        return this.filterIssuesToSelect
+    allAvailableJiraIssues() {
+      return this.$store.state.availableJiraProjects
+    },
+    getIssueTypes() {
+      if (this.$store.state.issueTypes.length === 0) {
+        // eslint-disable-next-line
+        this.dialogIssueTypes = false
+        // eslint-disable-next-line
+        this.isProjectSelected = false
+        // eslint-disable-next-line
+        return this.warning = "No project or issues in project found"
+      }else{
+        return this.$store.state.issueTypes.map(item => ({
+          item
+        }));
       }
     },
+    getIssuesToSelect() {
+      return this.$store.state.issuesToImport
+    },
   },
-  created() {
-    this.getProjectNames()
+  mounted() {
     this.getAllJiraProjects()
   },
 }

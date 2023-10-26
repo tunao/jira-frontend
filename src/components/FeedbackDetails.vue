@@ -60,8 +60,6 @@
 <script>
 
 import AddIssuesToFeedback from "@/components/dialogs/AddIssuesToFeedback.vue";
-import IssueService from "@/services/IssueService";
-import IssueFeedbackRelation from "@/services/IssueFeedbackRelation";
 
 export default {
   components: {AddIssuesToFeedback},
@@ -75,43 +73,30 @@ export default {
         // {text: "Issue Type", value: "issueType"},
         {text: "Similarity", value: "similarity"},
       ],
-      // issues: this.item,
       openIssuesDialog: false,
       listWithTore: false,
       feedback: this.item,
       searchIssues: "",
       searchToreIssues: "",
-      assignedIssues: [],
-      assignedToreIssues: [],
-      tempIssues: [],
-      tempIssuesTore: [],
     }
   },
   computed: {
     getIssues() {
       if (this.search !== "") {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.assignedIssues = this.tempIssues
         return this.filterIssues
       } else {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.assignedIssues = this.tempIssues
-        return this.assignedIssues
+        return this.$store.state.assignedIssues
       }
     },
     getToreIssues() {
       if (this.search !== "") {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.assignedToreIssues = this.tempIssuesTore
         return this.filterToreIssues
       } else {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.assignedToreIssues = this.tempIssuesTore
-        return this.assignedToreIssues
+        return this.$store.state.toreAssignedIssues
       }
     },
     filterIssues() {
-      return this.assignedIssues.filter(item => {
+      return this.$store.state.assignedIssues.filter(item => {
         const similarityString = item.similarity.toString();
         return item.summary.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
             || item.key.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
@@ -122,7 +107,7 @@ export default {
       })
     },
     filterToreIssues() {
-      return this.assignedToreIssues.filter(item => {
+      return this.$store.state.toreAssignedIssues.filter(item => {
         const similarityString = item.similarity.toString();
         return item.summary.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
             || item.key.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
@@ -135,20 +120,10 @@ export default {
   },
   methods: {
     getAssignedIssues(){
-      IssueService.getAssignedIssues(this.feedback.id).then((response) => {
-        console.log("response.data")
-        console.log(response.data)
-        this.assignedIssues = response.data
-        this.tempIssues = response.data
-      })
+      this.$store.dispatch("actionGetAssignedIssuesFromFeedback", this.feedback.id)
     },
     getAssignedToreIssues(){
-      IssueService.getToreAssignedIssues(this.feedback.id).then((response) => {
-        console.log("response.data")
-        console.log(response.data)
-        this.assignedToreIssues = response.data
-        this.tempIssuesTore = response.data
-      })
+      this.$store.dispatch("actionGetToreAssignedIssuesFromFeedback", this.feedback.id)
     },
     openAddDialogWithTore() {
       this.listWithTore = true
@@ -166,25 +141,17 @@ export default {
     goBack() {
       this.$router.go(-1);
     },
-    deleteIssue(item) {
-      IssueFeedbackRelation.deleteIssueFeedbackRelation(item.key, this.feedback.id)
-          .then((response) => {
-            console.log(response.data);
-            this.getAssignedIssues()
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+    async deleteIssue(item) {
+      const feedbackId = this.feedback.id
+      const issueKey = item.key
+      await this.$store.dispatch("actionDeleteIssueFeedbackRelation", {issueKey, feedbackId})
+      this.getAssignedIssues()
     },
-    deleteToreIssue(item) {
-      IssueFeedbackRelation.deleteToreIssueFeedbackRelation(item.key, this.feedback.id)
-          .then((response) => {
-            console.log(response.data);
-            this.getAssignedToreIssues()
-          })
-          .catch((error) => {
-            console.error(error);
-          });
+    async deleteToreIssue(item) {
+      const feedbackId = this.feedback.id
+      const issueKey = item.key
+      await this.$store.dispatch("actionDeleteToreIssueFeedbackRelation", {issueKey, feedbackId})
+      this.getAssignedToreIssues()
     },
   },
   created() {

@@ -35,17 +35,12 @@
 
 <script>
 
-import FeedbackService from "@/services/FeedbackService";
-import IssueFeedbackRelation from "@/services/IssueFeedbackRelation";
-
 export default {
   props: ['openFeedbackDialog', 'issue', 'listWithTore'],
   data(){
     return {
       selectedIssue: this.issue,
       selectedFeedback: [],
-      allFeedback: [],
-      tempFeedback: [],
       search: "",
       headerDialog: [
         {text: "", sort: false},
@@ -65,17 +60,13 @@ export default {
     },
     getFilteredFeedback() {
       if (this.search !== "") {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.allFeedback = this.tempFeedback
         return this.filterFeedback
       } else {
-        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
-        this.allFeedback = this.tempFeedback
-        return this.allFeedback
+        return this.$store.state.unassignedFeedback
       }
     },
     filterFeedback() {
-      return this.allFeedback.filter(item => {
+      return this.$store.state.unassignedFeedback.filter(item => {
         return item.id.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             || item.text.toLowerCase().indexOf(this.search.toLowerCase()) > -1
       })
@@ -86,45 +77,25 @@ export default {
       this.selectedFeedback = []
       this.$emit('toggleFeedback', !this.openFeedbackDialog);
     },
-    addSelectedFeedback() {
+    async addSelectedFeedback() {
+      const projectName = this.selectedIssue.projectName
+      const issueKey = this.selectedIssue.key
+      const selectedFeedback = this.selectedFeedback
       if (!this.listWithTore){
-        IssueFeedbackRelation.addFeedbackToIssue(this.selectedIssue.projectName, this.selectedIssue.key, this.selectedFeedback)
-            .then((response) => {
-              console.log(response.data);
-              this.getFeedback()
-              // this.selectedIssue = response.data
-              this.toggleFeedback();
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+        await this.$store.dispatch("actionAddFeedbackToIssue", {projectName, issueKey, selectedFeedback})
+        this.getFeedback()
+        this.toggleFeedback();
       }else{
-        IssueFeedbackRelation.addToreFeedbackToIssue(this.selectedIssue.projectName, this.selectedIssue.key, this.selectedFeedback)
-            .then((response) => {
-              console.log(response.data);
-              this.getFeedback()
-              // this.selectedIssue.assigned_feedback = response.data.updated_feedback
-              this.toggleFeedback();
-            })
-            .catch((error) => {
-              console.error(error);
-            });
+        await this.$store.dispatch("actionAddToreFeedbackToIssue", {projectName, issueKey, selectedFeedback})
+        this.getFeedback()
+        this.toggleFeedback();
       }
     },
     getFeedback(){
       if (!this.listWithTore){
-        FeedbackService.getUnassignedFeedback(this.selectedIssue.key).then((response) => {
-          console.log(response.data)
-          this.allFeedback = response.data
-          this.tempFeedback = response.data
-        })
+        this.$store.dispatch("actionGetUnassignedFeedback", this.selectedIssue.key)
       }else{
-        FeedbackService.getUnassignedToreFeedback(this.selectedIssue.key).then((response) => {
-          console.log("unassigned_feedback_tore")
-          console.log(response.data)
-          this.allFeedback = response.data
-          this.tempFeedback = response.data
-        })
+        this.$store.dispatch("actionGetToreUnassignedFeedback", this.selectedIssue.key)
       }
     },
   },
