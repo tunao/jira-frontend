@@ -22,6 +22,9 @@ export default {
 
 <style scoped>
 .overlay{
-  height: 150px;
+  height: 200px;
+  margin-top: 20px;
+  margin-left: 45%;
+  width: 50%;
 }
 </style>

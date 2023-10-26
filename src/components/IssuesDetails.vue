@@ -151,7 +151,7 @@ export default {
       this.getAssignedToreFeedback()
     },
   },
-  created() {
+  mounted() {
     this.getAssignedFeedback()
     this.getAssignedToreFeedback()
   }
@@ -180,7 +180,7 @@ h2{
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 220px;
+  top: 160px;
   left: 120px;
 }
 

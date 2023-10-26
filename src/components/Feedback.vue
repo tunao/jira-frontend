@@ -85,7 +85,7 @@ export default {
       })
     },
   },
-  created() {
+  mounted() {
     this.getFeedback();
   },
 }
