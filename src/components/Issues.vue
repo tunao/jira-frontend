@@ -16,7 +16,6 @@
       </v-dialog>
     </div>
 
-
     <div>
       <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
       </v-btn>
@@ -86,10 +85,11 @@
 <script>
 
 
+
+
 import LoadFeedbackFromDB from "@/components/LoadFeedbackFromDB.vue";
 import ImportJiraProject from "@/components/ImportJiraProject.vue";
 import LoadingView from "@/components/dialogs/LoadingView.vue";
-
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -118,6 +118,7 @@ export default {
       warning: "Select or import a project",
       isProjectSelected: true,
       importDialog: false,
+      // openDetails: false
     }
   },
   components:{
@@ -173,7 +174,7 @@ export default {
       }
     },
     showDetails(item) {
-      this.$router.push({name: 'assigned_feedback', params: {item: item}});
+      this.$router.push({ name: 'assigned_feedback', params: { item: item } });
     },
     getAllIssues() {
       console.log("get All Issues")

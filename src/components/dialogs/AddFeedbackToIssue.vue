@@ -51,7 +51,8 @@ export default {
   },
   watch: {
     openFeedbackDialog() {
-      this.getFeedback()
+      this.selectedIssue = this.issue
+      this.getUnassignedFeedback()
     },
   },
   computed:{
@@ -83,15 +84,13 @@ export default {
       const selectedFeedback = this.selectedFeedback
       if (!this.listWithTore){
         await this.$store.dispatch("actionAddFeedbackToIssue", {projectName, issueKey, selectedFeedback})
-        this.getFeedback()
         this.toggleFeedback();
       }else{
         await this.$store.dispatch("actionAddToreFeedbackToIssue", {projectName, issueKey, selectedFeedback})
-        this.getFeedback()
         this.toggleFeedback();
       }
     },
-    getFeedback(){
+    getUnassignedFeedback(){
       if (!this.listWithTore){
         this.$store.dispatch("actionGetUnassignedFeedback", this.selectedIssue.key)
       }else{

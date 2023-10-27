@@ -62,11 +62,20 @@
 
 <script>
 
+
 import AddIssuesToFeedback from "@/components/dialogs/AddIssuesToFeedback.vue";
 import LoadingView from "@/components/dialogs/LoadingView.vue";
 
 export default {
-  components: {LoadingView, AddIssuesToFeedback},
+  mounted() {
+    this.getAssignedIssues()
+    this.getAssignedToreIssues()
+  },
+  components: {
+    AddIssuesToFeedback,
+    LoadingView
+  },
+  props: ['item'],
   data(){
     return{
       headers: [
@@ -78,18 +87,14 @@ export default {
       ],
       openIssuesDialog: false,
       listWithTore: false,
-      feedback: this.$route.params.item,
+      feedback: this.item,
       searchIssues: "",
       searchToreIssues: "",
     }
   },
   watch: {
-    '$route' (to, from) {
-      if (to.params.item !== from.params.item) {
-        this.issue = to.params.item;
-        this.getAssignedIssues()
-        this.getAssignedToreIssues()
-      }
+    item() {
+      this.feedback = this.item;
     }
   },
   computed: {
@@ -116,9 +121,9 @@ export default {
         return item.summary.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
             || item.key.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
             || similarityString.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
-            // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
       })
     },
     filterToreIssues() {
@@ -127,9 +132,9 @@ export default {
         return item.summary.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
             || item.key.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
             || similarityString.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
-            // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
       })
     },
   },
@@ -169,10 +174,10 @@ export default {
       this.getAssignedToreIssues()
     },
   },
-  mounted() {
-    this.getAssignedIssues()
-    this.getAssignedToreIssues()
-  }
+  // mounted() {
+  //   this.getAssignedIssues()
+  //   this.getAssignedToreIssues()
+  // }
 };
 
 </script>
@@ -207,7 +212,7 @@ h2{
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 160px;
+  top: 130px;
   left: 120px;
 }
 

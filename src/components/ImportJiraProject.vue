@@ -9,9 +9,9 @@
     <div>
       <v-select class="select-issueTypes" v-model="projectName" :items="allAvailableJiraIssues"
                 label="Select project" item-text="name"
-                ></v-select>
+      ></v-select>
       <v-btn dark color="blue" @click="getIssueTypesByProjectName()"> SEARCH
-                </v-btn>
+      </v-btn>
       <v-btn dark color="red" @click="deleteAllIssues()">Remove all Issues</v-btn>
     </div>
     <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>

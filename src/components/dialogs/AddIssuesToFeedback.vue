@@ -80,15 +80,16 @@ export default {
       return this.$store.state.unassignedIssues.filter(item => {
         return item.summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             || item.key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
-            // || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        // || item.projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
       })
     },
   },
   watch: {
     openIssuesDialog() {
-      this.getAllIssues();
+      this.selectedFeedback = this.feedback
+      this.getUnassignedIssues();
     }
   },
   methods:{
@@ -107,11 +108,11 @@ export default {
         this.toggleIssues();
       }
     },
-    getAllIssues() {
+    getUnassignedIssues() {
       console.log(this.listWithTore)
       if (!this.listWithTore){
         this.$store.dispatch("actionGetUnassignedIssues", this.selectedFeedback.id)
-          // this.totalItems = totalItems
+        // this.totalItems = totalItems
       }else{
         this.$store.dispatch("actionGetUnassignedToreIssues", this.selectedFeedback.id)
         //   // this.totalItems = totalItems

@@ -542,6 +542,23 @@ export const actionDeleteFeedback = ({commit}, feedbackId) => {
     });
 };
 
+export const actionDeleteAllFeedback = ({commit}) => {
+    return new Promise((resolve, reject) => {
+        commit("setIsLoadingData", true);
+        console.log("Delete all feedback");
+        axios.delete(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/delete_all_feedback`)
+            .then(response => {
+                console.log("deleted feedback");
+                commit("setIsLoadingData", false);
+                resolve(response);
+            })
+            .catch(e => {
+                console.error("Error:", e);
+                reject(e);
+            });
+    });
+};
+
 export const actionGetUnassignedFeedback = ({commit}, issueKey) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);

@@ -3,13 +3,15 @@
     <v-dialog v-model="isLoadingData">
       <LoadingView/>
     </v-dialog>
-
     <v-card class="table-header">
       <v-card-title>
         <h2>Feedback</h2>
         <div class="search-in-table">
           <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
         </div>
+        <v-btn color="red" @click="deleteAllFeedback()">
+          remove entire feedback
+        </v-btn>
       </v-card-title>
       <v-data-table
           :headers="tableHeaders"
@@ -33,6 +35,7 @@
 
 <script>
 
+
 import LoadingView from "@/components/dialogs/LoadingView.vue";
 
 export default {
@@ -46,6 +49,7 @@ export default {
         {text: "ID", value: "id"}
       ],
       search: "",
+      // openDetails: false,
     }
   },
   methods: {
@@ -61,6 +65,10 @@ export default {
     },
     async deleteFeedback(item) {
       await this.$store.dispatch("actionDeleteFeedback", item.id)
+      this.getFeedback()
+    },
+    async deleteAllFeedback() {
+      await this.$store.dispatch("actionDeleteAllFeedback")
       this.getFeedback()
     },
     showDetails(item) {

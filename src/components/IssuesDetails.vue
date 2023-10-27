@@ -62,10 +62,18 @@
 
 <script>
 
+
+
+
 import AddFeedbackToIssue from "@/components/dialogs/AddFeedbackToIssue.vue";
 import LoadingView from "@/components/dialogs/LoadingView.vue";
-export default {
 
+export default {
+  mounted() {
+    this.getAssignedFeedback()
+    this.getAssignedToreFeedback()
+  },
+  props: ['item'],
   data() {
     return {
       header: [
@@ -77,7 +85,7 @@ export default {
         {text: "Id", value: "id"},
         {text: "Text", value: "text"},
       ],
-      issue: this.$route.params.item,
+      issue: this.item,
       listWithTore: false,
       openFeedbackDialog: false,
       searchFeedback: "",
@@ -85,16 +93,12 @@ export default {
     }
   },
   components:{
-    LoadingView,
     AddFeedbackToIssue,
+    LoadingView,
   },
   watch: {
-    '$route' (to, from) {
-      if (to.params.item !== from.params.item) {
-        this.issue = to.params.item;
-        this.getAssignedFeedback()
-        this.getAssignedToreFeedback()
-      }
+    item() {
+      this.issue = this.item;
     }
   },
   computed:{
@@ -137,6 +141,7 @@ export default {
       this.$router.go(-1);
     },
     getAssignedFeedback(){
+      console.log("get assigned feedback")
       this.$store.dispatch("actionGetAssignedFeedback", this.issue.key)
     },
     getAssignedToreFeedback(){
@@ -168,10 +173,10 @@ export default {
       this.getAssignedToreFeedback()
     },
   },
-  mounted() {
-    this.getAssignedFeedback()
-    this.getAssignedToreFeedback()
-  }
+  // mounted() {
+  //   this.getAssignedFeedback()
+  //   this.getAssignedToreFeedback()
+  // }
 };
 
 </script>
@@ -197,7 +202,7 @@ h2{
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 160px;
+  top: 130px;
   left: 120px;
 }
 
