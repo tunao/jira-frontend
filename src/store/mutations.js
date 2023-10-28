@@ -7,11 +7,13 @@ export const setImportedJiraProjects = (state, projects) => {
 };
 
 export const setAssignedIssuesFromFeedback = (state, issues) => {
-    state.assignedIssues = issues || [];
+    state.assignedIssues = issues.related_issues || [];
+    state.totalAssignedIssueItems = issues.totalItems || 0;
 };
 
 export const setToreAssignedIssuesFromFeedback = (state, issues) => {
-    state.toreAssignedIssues = issues || [];
+    state.toreAssignedIssues = issues.related_issues || [];
+    state.totalToreAssignedIssueItems = issues.totalItems || 0;
 };
 
 export const setIssueTypes = (state, issueTypes) => {
@@ -33,10 +35,12 @@ export const setAllIssues = (state, issues) => {
 
 export const setUnassignedIssues = (state, issues) => {
     state.unassignedIssues = issues.missing_issues || [];
+    state.totalUnassignedIssueItems = issues.totalItems || 0;
 };
 
 export const setAllFeedback = (state, feedback) => {
-    state.feedback = feedback || [];
+    state.feedback = feedback.feedback || [];
+    state.totalFeedbackItems = feedback.totalItems || 0;
 };
 
 export const setFeedbackFileNames = (state, feedbackFileNames) => {
@@ -48,14 +52,17 @@ export const setAnnotationFileNames = (state, annotationFileNames) => {
 };
 
 export const setAssignedFeedback = (state, feedback) => {
-    state.assignedFeedback = feedback || [];
+    state.assignedFeedback = feedback.feedback || [];
+    state.totalAssignedFeedbackItems = feedback.totalItems || 0;
 };
 
 export const setToreAssignedFeedback = (state, feedback) => {
-    state.toreAssignedFeedback = feedback || [];
+    state.toreAssignedFeedback = feedback.feedback || [];
+    state.totalToreAssignedFeedbackItems = feedback.totalItems || 0;
 };
 
 export const setUnassignedFeedback = (state, feedback) => {
-    state.unassignedFeedback = feedback || [];
+    state.unassignedFeedback = feedback.feedback || [];
+    state.totalUnassignedFeedbackItems = feedback.totalItems || 0;
 };
 

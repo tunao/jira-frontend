@@ -20,6 +20,14 @@
       <v-data-table
           :headers="header"
           :items="getAssignedFeedbackFilter"
+          item-key="id"
+          class="elevation-1"
+          :total-items="$store.state.totalAssignedFeedbackItems"
+          rows-per-page-text="Feedback per page"
+          :rows-per-page-items="pagination.rowsPerPageItems"
+          :pagination.sync="pagination"
+          @update:pagination.self="getAssignedFeedback()"
+          :no-data-text="warning"
       >
         <template v-slot:items="props">
           <td>{{ props.item.id }}</td>
@@ -45,6 +53,14 @@
       <v-data-table
           :headers="header"
           :items="getAssignedToreFeedbackFilter"
+          item-key="id"
+          class="elevation-1"
+          :total-items="$store.state.totalToreAssignedFeedbackItems"
+          rows-per-page-text="Feedback per page"
+          :rows-per-page-items="paginationTore.rowsPerPageItems"
+          :pagination.sync="paginationTore"
+          @update:pagination.self="getAssignedToreFeedback()"
+          :no-data-text="warning"
       >
         <template v-slot:items="props">
           <td>{{ props.item.id }}</td>
@@ -61,8 +77,6 @@
 </template>
 
 <script>
-
-
 
 
 import AddFeedbackToIssue from "@/components/dialogs/AddFeedbackToIssue.vue";
@@ -85,11 +99,26 @@ export default {
         {text: "Id", value: "id"},
         {text: "Text", value: "text"},
       ],
+      pagination: {
+        sortBy: "id",
+        descending: false,
+        page: 1,
+        rowsPerPage: 10,
+        rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
+      },
+      paginationTore: {
+        sortBy: "id",
+        descending: false,
+        page: 1,
+        rowsPerPage: 10,
+        rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
+      },
       issue: this.item,
       listWithTore: false,
       openFeedbackDialog: false,
       searchFeedback: "",
       searchToreFeedback: "",
+      warning: "No Feedback assigned",
     }
   },
   components:{
@@ -109,6 +138,8 @@ export default {
       if (this.searchFeedback !== "") {
         return this.filterFeedbackFromIssue
       } else {
+        console.log("check pagination assigned feedback")
+        console.log(this.$store.state.assignedFeedback)
         return this.$store.state.assignedFeedback
       }
     },
@@ -116,6 +147,8 @@ export default {
       if (this.searchToreFeedback !== "") {
         return this.filterToreFeedbackFromIssue
       } else {
+        console.log("check pagination assigned feedback tore")
+        console.log(this.$store.state.toreAssignedFeedback)
         return this.$store.state.toreAssignedFeedback
       }
     },
@@ -141,11 +174,16 @@ export default {
       this.$router.go(-1);
     },
     getAssignedFeedback(){
-      console.log("get assigned feedback")
-      this.$store.dispatch("actionGetAssignedFeedback", this.issue.key)
+      let issueKey = this.issue.key
+      let page = this.pagination.page
+      let size = this.pagination.rowsPerPage
+      this.$store.dispatch("actionGetAssignedFeedback", {issueKey, page, size})
     },
     getAssignedToreFeedback(){
-      this.$store.dispatch("actionGetToreAssignedFeedback", this.issue.key)
+      let issueKey = this.issue.key
+      let page = this.paginationTore.page
+      let size = this.paginationTore.rowsPerPage
+      this.$store.dispatch("actionGetToreAssignedFeedback", {issueKey, page, size})
     },
     async deleteFeedback(item) {
       const feedbackId = item.id
@@ -173,10 +211,6 @@ export default {
       this.getAssignedToreFeedback()
     },
   },
-  // mounted() {
-  //   this.getAssignedFeedback()
-  //   this.getAssignedToreFeedback()
-  // }
 };
 
 </script>
