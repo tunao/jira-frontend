@@ -12,7 +12,7 @@
       ></v-select>
       <v-btn dark color="blue" @click="getIssueTypesByProjectName()"> SEARCH
       </v-btn>
-      <v-btn dark color="red" @click="deleteAllIssues()">Remove all Issues</v-btn>
+<!--      <v-btn dark color="red" @click="deleteAllIssues()">Remove all Issues</v-btn>-->
     </div>
     <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>
 
@@ -46,8 +46,13 @@
             <v-card-title>
               choose the issue-types you want to show of project: {{ projectName }}
             </v-card-title>
-            <v-data-table v-model="selectedIssuesTypes" :headers="headersIssueTypes" :items="getIssueTypes"
-                          item-key="item" select-all class="elevation-1" rows-per-page-text="IssueTypes per page"
+            <v-data-table v-model="selectedIssuesTypes"
+                          :headers="headersIssueTypes"
+                          :items="getIssueTypes"
+                          item-key="item"
+                          select-all
+                          class="elevation-1"
+                          rows-per-page-text="IssueTypes per page"
             >
               <template v-slot:items="props">
                 <td>
@@ -105,7 +110,6 @@ export default {
     getIssuesByTypes() {
       this.dialogIssueTypes = false
       this.dialogIssues = true
-      console.log(this.selectedIssuesTypes)
       let projectName = this.projectName
       let issueTypes = this.selectedIssuesTypes
       const selectedIssuesTypesArray = issueTypes.map(item => {
@@ -113,12 +117,12 @@ export default {
       });
       this.$store.dispatch('actionGetIssuesByProjectNameFromJira', {projectName, selectedIssuesTypesArray});
     },
-    deleteAllIssues() {
-      this.dialogIssues = false
-      this.openDialog = false
-      this.$store.dispatch("actionDeleteAllIssues")
-      this.selectedIssues = []
-    },
+    // deleteAllIssues() {
+    //   this.dialogIssues = false
+    //   this.openDialog = false
+    //   this.$store.dispatch("actionDeleteAllIssues")
+    //   this.selectedIssues = []
+    // },
     addSelectedIssues() {
       this.dialogIssues = false
       this.openDialog = false
@@ -158,6 +162,8 @@ export default {
       return this.$store.state.availableJiraProjects
     },
     getIssueTypes() {
+      // eslint-disable-next-line
+      this.selectedIssuesTypes = []
       if (this.$store.state.issueTypes.length === 0) {
         // eslint-disable-next-line
         this.dialogIssueTypes = false
@@ -172,7 +178,25 @@ export default {
       }
     },
     getIssuesToSelect() {
-      return this.$store.state.issuesToImport
+      if (this.search !== "") {
+        return this.filterImportedIssues
+      } else {
+        return this.$store.state.issuesToImport
+      }
+    },
+    filterImportedIssues() {
+      return this.$store.state.issuesToImport.filter(issue => {
+        const summary = issue.summary || "";
+        const key = issue.key || "";
+        const description = issue.description || "";
+        const issueType = issue.issueType || "";
+        const projectName = issue.projectName || "";
+        return summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+      });
     },
   },
   mounted() {

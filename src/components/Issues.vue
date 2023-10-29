@@ -3,27 +3,28 @@
     <v-dialog v-model="isLoadingData">
       <LoadingView/>
     </v-dialog>
-
-    <div class="import-elements">
-      <LoadFeedbackFromDB class="element1"></LoadFeedbackFromDB>
-      <v-btn dark color="blue" class="element2" @click="openImportDialog()"> Import Issues
-      </v-btn>
-      <v-dialog v-model="importDialog">
-        <ImportJiraProject class="import-dialog"/>
-        <v-btn dark color="black" @click="closeImportDialog()"
-        >CLOSE
-        </v-btn>
-      </v-dialog>
-    </div>
-
     <div>
-      <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
-      </v-btn>
-      <v-btn dark color="blue" @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
-      </v-btn>
-    </div>
+      <div class="import-elements">
+        <LoadFeedbackFromDB class="element1"></LoadFeedbackFromDB>
+        <v-btn dark color="blue" class="element2" @click="openImportDialog()"> Import Issues
+        </v-btn>
+        <v-dialog class="custom-dialog" v-model="importDialog">
+          <ImportJiraProject class="import-dialog"/>
+          <v-btn dark color="black" @click="closeImportDialog()"
+          >CLOSE
+          </v-btn>
+        </v-dialog>
+      </div>
 
-    <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>
+      <div>
+        <v-btn dark color="blue" @click="assignFeedbackToIssues()"> Assign Feedback to Issues
+        </v-btn>
+        <v-btn dark color="blue" @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
+        </v-btn>
+      </div>
+
+      <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>
+    </div>
 
     <div class="main-issue-table">
       <v-card class="v-card">
@@ -46,15 +47,18 @@
                       @input="onSelect(!selectedProjects.includes(item))"
                   ></v-checkbox>
                   {{ item.projectName }}
-                  <v-btn class="delete-project">
-                    <i class="material-icons delete-icon" @click.stop="deleteProject(item)">delete</i>
-                  </v-btn>
+                  <i class="material-icons delete-icon" @click.stop="deleteProject(item)">delete</i>
                 </div>
               </template>
             </v-select>
           </div>
           <div class="search-in-table">
             <v-text-field v-model="search" append-icon="search" label=" Search in table..."></v-text-field>
+          </div>
+          <div class="service-button">
+            <v-btn  @click="deleteAllIssues()" small>
+              <i class="material-icons delete-icon">delete_sweep</i>
+            </v-btn>
           </div>
         </v-card-title>
         <v-data-table :headers="headers"
@@ -74,28 +78,35 @@
               <td>{{ props.item.description }}</td>
               <td>{{ props.item.issueType }}</td>
               <td>{{ props.item.projectName }}</td>
+<!--              <td>-->
+<!--                <v-btn class="add-button" @click.stop="addUnassignedFeedback(props.item)">-->
+<!--                  <i class="material-icons add-icon">add</i>-->
+<!--                </v-btn>-->
+<!--              </td>-->
+<!--              <td>-->
+<!--                <v-btn class="add-button" @click.stop="addUnassignedToreFeedback(props.item)">-->
+<!--                  <i class="material-icons add-icon">add</i>-->
+<!--                </v-btn>-->
+<!--              </td>-->
               <td>
-                <v-btn @click.stop="deleteIssue(props.item)">
-                  <i class="material-icons delete-icon" >delete</i>
-                </v-btn>
+                <i class="material-icons delete-icon"  @click.stop="deleteIssue(props.item)">delete</i>
               </td>
             </tr>
           </template>
         </v-data-table>
       </v-card>
+<!--      <AddFeedbackToIssue :listWithTore="listWithTore" :openFeedbackDialog="openFeedbackDialog" :issue="selectedIssueToAddUnassignedFeedback" @toggleFeedback="toggleFeedback"/>-->
     </div>
-
   </div>
 </template>
 
 <script>
 
 
-
-
 import LoadFeedbackFromDB from "@/components/LoadFeedbackFromDB.vue";
 import ImportJiraProject from "@/components/ImportJiraProject.vue";
 import LoadingView from "@/components/dialogs/LoadingView.vue";
+// import AddFeedbackToIssue from "@/components/dialogs/AddFeedbackToIssue.vue";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -124,14 +135,23 @@ export default {
       warning: "Select or import a project",
       isProjectSelected: true,
       importDialog: false,
+      listWithTore: false,
+      openFeedbackDialog: false,
+      selectedIssueToAddUnassignedFeedback: "",
     }
   },
   components:{
+    // AddFeedbackToIssue,
     LoadFeedbackFromDB,
     ImportJiraProject,
     LoadingView
   },
   methods: {
+    async deleteAllIssues() {
+      await this.$store.dispatch("actionDeleteAllIssues")
+      this.getAllIssues()
+      this.getProjectNames()
+    },
     closeImportDialog(){
       this.importDialog = false
       this.getProjectNames()
@@ -139,6 +159,20 @@ export default {
     },
     openImportDialog(){
       this.importDialog = true
+    },
+    // addUnassignedFeedback(item){
+    //   this.selectedIssueToAddUnassignedFeedback = item
+    //   this.listWithTore = false
+    //   this.openFeedbackDialog = true;
+    // },
+    // addUnassignedToreFeedback(item){
+    //   this.selectedIssueToAddUnassignedFeedback = item
+    //   this.listWithTore = true
+    //   this.openFeedbackDialog = true;
+    // },
+    toggleFeedback(value) {
+      this.openFeedbackDialog = value;
+      this.getAllIssues()
     },
     async deleteIssue(item){
       try {
@@ -217,12 +251,9 @@ export default {
       return this.$store.state.importedJiraProjects
     },
     getIssues() {
-      console.log("filter issues")
       if (this.search !== "") {
         return this.filterIssues
       } else {
-        console.log("check pagination")
-        console.log(this.$store.state.issues)
         return this.$store.state.issues
       }
     },
@@ -250,24 +281,20 @@ export default {
 </script>
 
 <style>
-.import-dialog{
-  background-color: white;
+.service-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 .import-elements {
   display: flex;
   justify-content: space-between;
 }
-
 .element1 {
   flex: 0.7;
 }
-
 .element2 {
   flex: 0.1;
-}
-
-.delete-project{
-  margin-left: 100px
 }
 .select-projects{
   display: flex;
@@ -288,5 +315,12 @@ export default {
 }
 p {
   font-weight: bold;
+}
+.delete-icon {
+  color: red;
+}
+.import-dialog {
+  background-color: white;
+  height: 300px;
 }
 </style>
