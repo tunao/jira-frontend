@@ -78,16 +78,6 @@
               <td>{{ props.item.description }}</td>
               <td>{{ props.item.issueType }}</td>
               <td>{{ props.item.projectName }}</td>
-<!--              <td>-->
-<!--                <v-btn class="add-button" @click.stop="addUnassignedFeedback(props.item)">-->
-<!--                  <i class="material-icons add-icon">add</i>-->
-<!--                </v-btn>-->
-<!--              </td>-->
-<!--              <td>-->
-<!--                <v-btn class="add-button" @click.stop="addUnassignedToreFeedback(props.item)">-->
-<!--                  <i class="material-icons add-icon">add</i>-->
-<!--                </v-btn>-->
-<!--              </td>-->
               <td>
                 <i class="material-icons delete-icon"  @click.stop="deleteIssue(props.item)">delete</i>
               </td>
@@ -95,7 +85,6 @@
           </template>
         </v-data-table>
       </v-card>
-<!--      <AddFeedbackToIssue :listWithTore="listWithTore" :openFeedbackDialog="openFeedbackDialog" :issue="selectedIssueToAddUnassignedFeedback" @toggleFeedback="toggleFeedback"/>-->
     </div>
   </div>
 </template>
@@ -106,7 +95,6 @@
 import LoadFeedbackFromDB from "@/components/LoadFeedbackFromDB.vue";
 import ImportJiraProject from "@/components/ImportJiraProject.vue";
 import LoadingView from "@/components/dialogs/LoadingView.vue";
-// import AddFeedbackToIssue from "@/components/dialogs/AddFeedbackToIssue.vue";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
@@ -141,7 +129,6 @@ export default {
     }
   },
   components:{
-    // AddFeedbackToIssue,
     LoadFeedbackFromDB,
     ImportJiraProject,
     LoadingView
@@ -166,16 +153,6 @@ export default {
     openImportDialog(){
       this.importDialog = true
     },
-    // addUnassignedFeedback(item){
-    //   this.selectedIssueToAddUnassignedFeedback = item
-    //   this.listWithTore = false
-    //   this.openFeedbackDialog = true;
-    // },
-    // addUnassignedToreFeedback(item){
-    //   this.selectedIssueToAddUnassignedFeedback = item
-    //   this.listWithTore = true
-    //   this.openFeedbackDialog = true;
-    // },
     toggleFeedback(value) {
       this.openFeedbackDialog = value;
       this.getAllIssues()

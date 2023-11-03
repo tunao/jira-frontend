@@ -28,6 +28,10 @@ export const setIsLoadingData = (state, value) => {
     state.isLoadingData = value || false;
 };
 
+export const setDataToExport = (state, value) => {
+    state.dataToExport = value || [];
+};
+
 export const setAllIssues = (state, issues) => {
     state.issues = issues.issues || [];
     state.totalIssueItems = issues.totalItems || 0;

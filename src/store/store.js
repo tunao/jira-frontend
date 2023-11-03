@@ -31,6 +31,7 @@ const store = new Vuex.Store({
         totalToreAssignedFeedbackItems: 0,
         unassignedFeedback: [],
         totalUnassignedFeedbackItems: 0,
+        dataToExport: []
 
     },
     mutations,

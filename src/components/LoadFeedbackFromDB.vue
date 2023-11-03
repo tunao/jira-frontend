@@ -49,8 +49,20 @@ export default {
       this.$store.dispatch("actionGetFeedbackNames")
     },
     fetchAnnotationFileNames(){
-      this.$store.dispatch("actionGetAnnotationNames")
+      console.log("selectedFeedbackFileName")
+      console.log(this.selectedFeedbackFileName)
+      if(this.selectedFeedbackFileName){
+        this.$store.dispatch("actionGetAnnotationNames", this.selectedFeedbackFileName)
+      }else{
+        return []
+      }
     },
+  },
+  watch: {
+    selectedFeedbackFileName() {
+      console.log("Ja")
+      this.fetchAnnotationFileNames(); // Rufen Sie die Methode fetchAnnotationFileNames auf, um die Annotationsnamen zu aktualisieren
+    }
   },
   mounted() {
     this.fetchFeedbackFileNames();
