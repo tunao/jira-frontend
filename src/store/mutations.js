@@ -32,6 +32,10 @@ export const setDataToExport = (state, value) => {
     state.dataToExport = value || [];
 };
 
+export const setToreDataToExport = (state, value) => {
+    state.toreDataToExport = value || [];
+};
+
 export const setAllIssues = (state, issues) => {
     state.issues = issues.issues || [];
     state.totalIssueItems = issues.totalItems || 0;
