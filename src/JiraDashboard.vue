@@ -1,7 +1,14 @@
 <template>
-  <div id="start">
-    <div class="center-container">
-      <v-card class="banner">
+  <div>
+    <div v-if="!access" style="text-align: center">
+      <h2>Please don't change the tables in this view, because the evaluation for my thesis is not done</h2>
+      <h4>This view is just temporary</h4>
+      <input type="text" v-model="password" style="border: 1px solid #000">
+      <v-btn @click="accessPassword">Access</v-btn>
+    </div>
+    <div id="start" v-else-if="access">
+      <div class="center-container">
+        <v-card class="banner">
           <v-tabs
           >
             <v-tab :class="{ 'tab': true, 'tab-left': activeTab === '/jira/issues' }">
@@ -11,9 +18,10 @@
               <v-btn @click="navigateTo('/jira/feedback')" >Feedback</v-btn>
             </v-tab>
           </v-tabs>
-      </v-card>
+        </v-card>
+      </div>
+      <router-view></router-view>
     </div>
-    <router-view></router-view>
   </div>
 </template>
 
@@ -23,9 +31,14 @@ export default {
   data() {
     return {
       activeTab: '',
+      access: false,
+      password: "",
     };
   },
   methods: {
+    accessPassword(){
+      this.access = this.password === "3614";
+    },
     navigateTo(route) {
       this.activeTab = route.split('/').pop();
       this.$router.push(route);
