@@ -129,11 +129,11 @@ export const actionGetIssuesByProjectNameFromJira = ({commit},{ projectName, sel
     });
 };
 
-export const actionAssignIssuesToFeedback = ({commit}) => {
+export const actionAssignIssuesToFeedback = ({commit}, {selectedFeedback, maxSimilarity}) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);
 
-        axios.post(JIRA_DASHBOARD_BASE_URL_ISSUES_FEEDBACK_RELATION + `/assign_feedback_to_issues`)
+        axios.post(JIRA_DASHBOARD_BASE_URL_ISSUES_FEEDBACK_RELATION + `/assign_feedback_to_issues/${selectedFeedback}/${maxSimilarity}`)
             .then(response => {
                 commit("setIsLoadingData", false);
                 return response;
@@ -144,11 +144,11 @@ export const actionAssignIssuesToFeedback = ({commit}) => {
     });
 };
 
-export const actionToreAssignIssuesToFeedback = ({commit}) => {
+export const actionToreAssignIssuesToFeedback = ({commit}, {selectedFeedback, maxSimilarity}) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);
 
-        axios.post(JIRA_DASHBOARD_BASE_URL_ISSUES_FEEDBACK_RELATION + `/assign_feedback_to_issues_by_tore`)
+        axios.post(JIRA_DASHBOARD_BASE_URL_ISSUES_FEEDBACK_RELATION + `/assign_feedback_to_issues_by_tore/${selectedFeedback}/${maxSimilarity}`)
             .then(response => {
                 commit("setIsLoadingData", false);
                 return response;
@@ -415,8 +415,8 @@ export const actionSaveSelectedFeedback = ({commit}, selectedFeedbackFileName) =
         console.log("get all unassigned Issues")
         axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/load/${selectedFeedbackFileName}`)
             .then(response => {
-                const {data} = response;
-                commit("setAllFeedback", data);
+                // const {data} = response;
+                commit("setSelectedFeedback", selectedFeedbackFileName);
                 commit("setIsLoadingData", false);
                 return response;
             })
@@ -426,14 +426,14 @@ export const actionSaveSelectedFeedback = ({commit}, selectedFeedbackFileName) =
     });
 };
 
-export const actionAssignToreCategoriesToFeedback = ({commit}, selectedAnnotationFileName) => {
+export const actionAssignToreCategoriesToFeedback = ({commit}, {selectedAnnotationFileName, selectedFeedbackFileName}) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);
         console.log("get all unassigned Issues")
-        axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/assign_tore_to_feedback/${selectedAnnotationFileName}`)
+        axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/assign_tore_to_feedback/${selectedAnnotationFileName}/${selectedFeedbackFileName}`)
             .then(response => {
-                const {data} = response;
-                commit("setAllFeedback", data);
+                // const {data} = response;
+                commit("setSelectedAnnotation", selectedAnnotationFileName);
                 commit("setIsLoadingData", false);
                 return response;
             })
@@ -479,14 +479,15 @@ export const actionGetAnnotationNames = ({commit}, selectedFeedbackFileName) => 
     });
 };
 
-export const actionGetFeedback = ({commit}, {page, size}) => {
+export const actionGetFeedback = ({commit}, {page, size, selectedFeedbackFileName}) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);
         console.log("get all feedback")
         axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/get_feedback`, {
             params: {
                 page: page,
-                size: size
+                size: size,
+                selectedFeedbackFileName: selectedFeedbackFileName
             }
         })
             .then(response => {
@@ -547,11 +548,11 @@ export const actionGetToreAssignedFeedback = ({commit}, {issueKey, page, size}) 
     });
 };
 
-export const actionDeleteFeedback = ({commit}, feedbackId) => {
+export const actionDeleteFeedback = ({commit}, {feedbackId, selectedFeedback}) => {
     return new Promise((resolve, reject) => {
         commit("setIsLoadingData", true);
         console.log("Delete feedback");
-        axios.delete(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/delete_feedback/${feedbackId}`)
+        axios.delete(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/delete_feedback/${feedbackId}/${selectedFeedback}`)
             .then(response => {
                 console.log("deleted feedback");
                 commit("setIsLoadingData", false);
@@ -563,6 +564,7 @@ export const actionDeleteFeedback = ({commit}, feedbackId) => {
             });
     });
 };
+
 export const actionGetAssignedDataToExport = ({commit}) => {
     return new Promise((resolve, reject) => {
         commit("setIsLoadingData", true);
@@ -600,14 +602,16 @@ export const actionGetToreAssignedDataToExport = ({commit}) => {
     });
 };
 
-export const actionDeleteAllFeedback = ({commit}) => {
+export const actionDeleteAllFeedback = ({commit}, selectedFeedback) => {
     return new Promise((resolve, reject) => {
         commit("setIsLoadingData", true);
         console.log("Delete all feedback");
-        axios.delete(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/delete_all_feedback`)
+        axios.delete(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/delete_all_feedback/${selectedFeedback}`)
             .then(response => {
                 console.log("deleted feedback");
                 commit("setIsLoadingData", false);
+                commit("setSelectedFeedback", "");
+                commit("setSelectedAnnotation", "");
                 resolve(response);
             })
             .catch(e => {
@@ -617,11 +621,11 @@ export const actionDeleteAllFeedback = ({commit}) => {
     });
 };
 
-export const actionGetUnassignedFeedback = ({commit}, {issueKey, page, size}) => {
+export const actionGetUnassignedFeedback = ({commit}, {issueKey, page, size, selectedFeedback}) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);
         console.log("get assigned feedback")
-        axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/get_unassigned_feedback/${issueKey}`, {
+        axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/get_unassigned_feedback/${issueKey}/${selectedFeedback}`, {
             params: {
                 page: page,
                 size: size
@@ -639,11 +643,11 @@ export const actionGetUnassignedFeedback = ({commit}, {issueKey, page, size}) =>
     });
 };
 
-export const actionGetToreUnassignedFeedback = ({commit}, {issueKey, page, size}) => {
+export const actionGetToreUnassignedFeedback = ({commit}, {issueKey, page, size, selectedFeedback}) => {
     return new Promise(() => {
         commit("setIsLoadingData", true);
         console.log("get assigned feedback")
-        axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/get_unassigned_tore_feedback/${issueKey}`, {
+        axios.get(JIRA_DASHBOARD_BASE_URL_FEEDBACK + `/get_unassigned_tore_feedback/${issueKey}/${selectedFeedback}`, {
             params: {
                 page: page,
                 size: size

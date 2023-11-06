@@ -26,21 +26,27 @@ export default {
   name: "LoadFeedbackFromDB",
   data() {
     return {
-      selectedFeedbackFileName: '',
+      selectedFeedbackFileName: this.$store.state.selectedFeedback,
       selectedAnnotationFileName: '',
     }
   },
   computed: {
     getFeedbackFileNames(){
+      // eslint-disable-next-line
+      this.selectedFeedbackFileName = this.$store.state.selectedFeedback
       return this.$store.state.feedbackFileNames
     },
     getAnnotationFileNames(){
+      // eslint-disable-next-line
+      this.selectedAnnotationFileName = this.$store.state.selectedAnnotation
       return this.$store.state.annotationFileNames
     },
   },
   methods: {
     sendSelectedAnnotationName(){
-      this.$store.dispatch("actionAssignToreCategoriesToFeedback", this.selectedAnnotationFileName)
+      let selectedFeedbackFileName = this.$store.state.selectedFeedback
+      let selectedAnnotationFileName = this.selectedAnnotationFileName
+      this.$store.dispatch("actionAssignToreCategoriesToFeedback", {selectedFeedbackFileName, selectedAnnotationFileName})
     },
     sendSelectedFeedbackName(){
       this.$store.dispatch("actionSaveSelectedFeedback", this.selectedFeedbackFileName)
@@ -49,8 +55,6 @@ export default {
       this.$store.dispatch("actionGetFeedbackNames")
     },
     fetchAnnotationFileNames(){
-      console.log("selectedFeedbackFileName")
-      console.log(this.selectedFeedbackFileName)
       if(this.selectedFeedbackFileName){
         this.$store.dispatch("actionGetAnnotationNames", this.selectedFeedbackFileName)
       }else{
@@ -60,7 +64,6 @@ export default {
   },
   watch: {
     selectedFeedbackFileName() {
-      console.log("Ja")
       this.fetchAnnotationFileNames(); // Rufen Sie die Methode fetchAnnotationFileNames auf, um die Annotationsnamen zu aktualisieren
     }
   },
