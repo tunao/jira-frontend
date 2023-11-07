@@ -97,20 +97,24 @@ export default {
       this.deleteAllFb = false
     },
     exportAssignedDataToCSV() {
-      const csvHeader = ['feedback_id', 'feedback_text', 'issue_key', 'issue_summary', 'issue_description'];
-      const csvContent = [csvHeader];
-
-      for (const data of this.$store.state.dataToExport) {
-        const row = [
-          `"${data.feedback_id}"`,
-          `"${data.feedback_text}"`,
-          `"${data.issue_key}"`,
-          `"${data.issue_summary}"`,
-          `"${data.issue_description}"`
-        ];
-        csvContent.push(row);
+      const separator = "#";
+      const csvContent = [];
+      const headerRow = ['issue_key', 'issue_summary', 'issue_description', 'feedback'];
+      for (let i = 1; i <= this.$store.state.maxFeedbackCount; i++) {
+        headerRow.push(`feedback_id${i}`, `feedback_text${i}`);
       }
-      const csvBlob = new Blob([csvContent.map(row => row.join(',')).join('\n')], { type: 'text/csv' });
+      csvContent.push(headerRow.join(separator));
+      for (const data of this.$store.state.dataToExport) {
+        const issueRow = [data.issue_key, data.issue_summary, data.issue_description];
+        for (const feedback of data.feedback_data) {
+          issueRow.push(feedback.feedback_id, feedback.feedback_text);
+        }
+        while (issueRow.length < headerRow.length) {
+          issueRow.push('');
+        }
+        csvContent.push(issueRow.join(separator));
+      }
+      const csvBlob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
       const url = URL.createObjectURL(csvBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -119,20 +123,24 @@ export default {
       URL.revokeObjectURL(url);
     },
     exportAssignedToreDataToCSV() {
-      const csvHeader = ['feedback_id', 'feedback_text', 'issue_key', 'issue_summary', 'issue_description'];
-      const csvContent = [csvHeader];
-
-      for (const data of this.$store.state.toreDataToExport) {
-        const row = [
-          `"${data.feedback_id}"`,
-          `"${data.feedback_text}"`,
-          `"${data.issue_key}"`,
-          `"${data.issue_summary}"`,
-          `"${data.issue_description}"`
-        ];
-        csvContent.push(row);
+      const separator = "#";
+      const csvContent = [];
+      const headerRow = ['issue_key', 'issue_summary', 'issue_description', 'feedback'];
+      for (let i = 1; i <= this.$store.state.maxFeedbackCount; i++) {
+        headerRow.push(`feedback_id${i}`, `feedback_text${i}`);
       }
-      const csvBlob = new Blob([csvContent.map(row => row.join(',')).join('\n')], { type: 'text/csv' });
+      csvContent.push(headerRow.join(separator));
+      for (const data of this.$store.state.toreDataToExport) {
+        const issueRow = [data.issue_key, data.issue_summary, data.issue_description];
+        for (const feedback of data.feedback_data) {
+          issueRow.push(feedback.feedback_id, feedback.feedback_text);
+        }
+        while (issueRow.length < headerRow.length) {
+          issueRow.push('');
+        }
+        csvContent.push(issueRow.join(separator));
+      }
+      const csvBlob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
       const url = URL.createObjectURL(csvBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -148,11 +156,23 @@ export default {
       }
     },
     async getAssignedDataToExport() {
-      await this.$store.dispatch("actionGetAssignedDataToExport")
+      let selectedFeedback
+      if(this.$store.state.selectedFeedback === ""){
+        selectedFeedback = "None"
+      }else{
+        selectedFeedback = this.$store.state.selectedFeedback
+      }
+      await this.$store.dispatch("actionGetAssignedDataToExport", selectedFeedback)
       this.exportAssignedDataToCSV()
     },
     async getToreAssignedDataToExport() {
-      await this.$store.dispatch("actionGetToreAssignedDataToExport")
+      let selectedFeedback
+      if(this.$store.state.selectedFeedback === ""){
+        selectedFeedback = "None"
+      }else{
+        selectedFeedback = this.$store.state.selectedFeedback
+      }
+      await this.$store.dispatch("actionGetToreAssignedDataToExport", selectedFeedback)
       this.exportAssignedToreDataToCSV()
     },
     getFeedback(){
@@ -193,8 +213,6 @@ export default {
       if (this.search !== "") {
         return this.filterFeedback
       } else {
-        console.log("check pagination")
-        console.log(this.$store.state.feedback)
         return this.$store.state.feedback
       }
     },
