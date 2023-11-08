@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <v-dialog v-model="isLoadingData">
+    <v-dialog v-model="isLoadingData" :max-width="300">
       <LoadingView/>
     </v-dialog>
     <div>
@@ -317,9 +317,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-.warning{
-  color: red;
 }
 .filter-by-project, .search-in-table{
   margin-left: 30px;

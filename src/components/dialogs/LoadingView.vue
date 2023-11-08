@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay">
+  <div class="overlay" >
     <div class="text-center">
       <v-progress-circular indeterminate size="64">
         Loading...
@@ -13,12 +13,6 @@
 
 <script>
 export default {
-  data () {
-    return {
-      interval: {},
-      value: 0,
-    }
-  },
   methods:{
     cancelLoading() {
       this.$store.dispatch("actionCancelLoading");
@@ -29,9 +23,6 @@ export default {
 
 <style scoped>
 .overlay{
-  height: 200px;
-  margin-top: 20px;
-  margin-left: 45%;
-  width: 50%;
+  text-align: center;
 }
 </style>
