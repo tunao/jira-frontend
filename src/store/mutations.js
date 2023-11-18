@@ -41,6 +41,20 @@ export const setAllIssues = (state, issues) => {
     state.totalIssueItems = issues.totalItems || 0;
 };
 
+export const setIssuesWithoutAssignment = (state, issues) => {
+    state.issuesWithoutAssignment = issues.unassigned_issues || [];
+    state.totalIssueItems = issues.totalItems || 0;
+};
+
+export const setSavedData = (state, names) => {
+    state.selectedData = names || [];
+};
+
+export const setFeedbackWithoutAssignment = (state, issues) => {
+    state.feedbackWithoutAssignment = issues.unassigned_feedback || [];
+    state.totalFeedbackItems = issues.totalItems || 0;
+};
+
 export const setUnassignedIssues = (state, issues) => {
     state.unassignedIssues = issues.missing_issues || [];
     state.totalUnassignedIssueItems = issues.totalItems || 0;

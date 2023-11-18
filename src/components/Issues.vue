@@ -3,6 +3,40 @@
     <v-dialog v-model="isLoadingData" :max-width="300">
       <LoadingView/>
     </v-dialog>
+    <v-dialog v-model="typeNameToSaveData" :max-width="300">
+      <v-card>
+        <v-card-text>
+          <v-text-field
+              v-model="savedDataName"
+              label="Enter Name"
+              outlined
+              solo-inverted
+          ></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn @click="saveData" color="blue">Save</v-btn>
+          <v-btn @click="closeSaveDialog">Cancel</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="checkRestoreData" :max-width="400" >
+      <v-card class="restore-data">
+        <v-card-title class="restore-data">
+          <h3>If you choose to display this data, your current data will be deleted.</h3>
+          <h3>Are you sure you want to proceed?</h3>
+        </v-card-title>
+        <v-card-actions>
+          <v-btn color="red" @click="restoreData()">
+            Show
+          </v-btn>
+          <v-btn dark color="black" @click="closeRestoreDataDialog()">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <div>
       <v-dialog v-model="deleteAllIs" :max-width="300" class="delete-all-issues">
         <v-card>
@@ -20,36 +54,69 @@
         </v-card>
       </v-dialog>
     </div>
-    <div>
-      <div class="import-elements">
-        <LoadFeedbackFromDB class="element1"></LoadFeedbackFromDB>
-        <v-btn dark color="blue" class="element2" @click="openImportDialog()"> Import Issues
-        </v-btn>
-        <v-dialog class="custom-dialog" v-model="importDialog">
-          <ImportJiraProject class="import-dialog" @toggleImport="toggleImport" :importDialog="importDialog"/>
-          <v-btn dark color="black" @click="closeImportDialog()"
-          >CLOSE
-          </v-btn>
-        </v-dialog>
-      </div>
 
-      <div class="container-similarity">
-        <div class="button-row">
-          <v-btn dark color="blue" :class="{'assign_tore_not_allowed': !feedbackAndProjectIsSelected}"
-                 @click="assignFeedbackToIssues()"> Assign Feedback to Issues
-          </v-btn>
-          <v-btn dark color="blue" :class="{'assign_tore_not_allowed': !annotationAndProjectIsSelected}"
-                 @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
-          </v-btn>
-        </div>
-        <div class="input-container">
-          <label for="maxSimilarity">Choose max similarity:</label>
-          <input id="maxSimilarity" class="chooseSimilarity" type="number" v-model="maxSimilarity" />
-        </div>
-      </div>
+    <v-card>
+      <v-card-title>
+        <div class="import-elements">
+          <div class="import-buttons">
+            <LoadFeedbackFromDB class="element1"></LoadFeedbackFromDB>
+            <v-btn dark color="blue" class="element2" @click="openImportDialog()"> Import Issues
+            </v-btn>
+            <v-dialog class="custom-dialog" v-model="importDialog">
+              <ImportJiraProject class="import-dialog" @toggleImport="toggleImport" :importDialog="importDialog"/>
+              <v-btn dark color="black" @click="closeImportDialog()">CLOSE</v-btn>
+            </v-dialog>
+          </div>
 
-<!--      <p v-if="!isProjectSelected" class="warning">{{ warning }}</p>-->
-    </div>
+          <div class="export-buttons">
+            <v-btn dark color="blue" @click="getAssignedDataToExport()"> Export assigned Data to CSV
+            </v-btn>
+            <v-btn dark color="blue" @click="getToreAssignedDataToExport()"> Export TORE assigned Data To CSV
+            </v-btn>
+          </div>
+
+          <div class="save-buttons">
+            <v-subheader>Choose saved data or save current data</v-subheader>
+            <v-select class="select-saved-data"
+                      v-model="selectedData"
+                      :items="getSelectedData"
+                      label="Select Data"
+                      dense
+            >
+              <template v-slot:item="{ item }" >
+                <div>
+                  {{ item }}
+                  <i class="material-icons delete-icon" @click.stop="deleteSavedData(item)">delete</i>
+                </div>
+              </template>
+            </v-select>
+            <v-btn @click="openRestoreDataDialog()">Show Data</v-btn>
+            <v-btn dark color="blue" @click="setNameToSave()"> Save all assignments
+            </v-btn>
+            <p v-if="warningMessage1" style="color: red">{{warningMessage1}}</p>
+          </div>
+        </div>
+      </v-card-title>
+      <v-alert v-if="warningMessage" type="error">{{ warningMessage }}</v-alert>
+
+        <v-card-title>
+          <div class="container-similarity">
+            <div class="button-row">
+              <v-btn dark color="blue" :class="{'assign_tore_not_allowed': !feedbackAndProjectIsSelected}"
+                     @click="assignFeedbackToIssues()"> Assign Feedback to Issues
+              </v-btn>
+              <v-btn dark color="blue" :class="{'assign_tore_not_allowed': !annotationAndProjectIsSelected}"
+                     @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
+              </v-btn>
+            </div>
+            <div class="input-container">
+              <label for="maxSimilarity">Choose max similarity:</label>
+              <input id="maxSimilarity" class="chooseSimilarity" type="number" v-model="maxSimilarity" />
+            </div>
+          </div>
+        </v-card-title>
+
+    </v-card>
 
     <div class="main-issue-table">
       <v-card class="v-card">
@@ -84,6 +151,8 @@
             <v-btn  @click="dialogDeleteAllIssues()" small>
               <i class="material-icons delete-icon">delete_sweep</i>
             </v-btn>
+            <v-switch v-model="showUnassigned" @change="getUnassignedIssues">
+            </v-switch>
           </div>
         </v-card-title>
         <v-data-table :headers="headers"
@@ -145,11 +214,18 @@ export default {
       },
       search: "",
       selectedProjects: [],
+      selectedData: "",
       warning: "Select/import a project or feedback",
       importDialog: false,
       listWithTore: false,
       maxSimilarity: 0,
       deleteAllIs: false,
+      showUnassigned: false,
+      typeNameToSaveData: false,
+      savedDataName: "",
+      warningMessage: "",
+      warningMessage1: "",
+      checkRestoreData: false,
     }
   },
   components:{
@@ -158,6 +234,18 @@ export default {
     LoadingView
   },
   methods: {
+    getSavedDataNames() {
+      this.$store.dispatch("actionGetSavedDataNames")
+    },
+    async getUnassignedIssues() {
+      if(this.showUnassigned){
+        let page = this.pagination.page
+        let size = this.pagination.rowsPerPage
+        await this.$store.dispatch("actionGetIssuesWithoutAssignment", {page, size})
+      }else{
+        this.getAllIssues()
+      }
+    },
     toggleImport(value) {
       this.importDialog = value;
       this.getAllIssues()
@@ -202,6 +290,158 @@ export default {
       } catch (error) {
         console.error("Error:", error);
       }
+    },
+    exportAssignedDataToCSV() {
+      const csvContent = [];
+      const dataToExport = this.$store.state.dataToExport;
+
+      if (dataToExport.length === 0) {
+        return;
+      }
+      const issueKeys = [];
+      const issueSummaries = [];
+      const issueDescriptions = [];
+
+      for (const data of dataToExport) {
+        issueKeys.push(data.issue_key);
+        issueSummaries.push(data.issue_summary);
+        issueDescriptions.push(data.issue_description);
+      }
+      csvContent.push('issue_key#' + issueKeys.join('##'));
+      csvContent.push('issue_summary#' + issueSummaries.join('##'));
+      csvContent.push('issue_description#' + issueDescriptions.join('##'));
+
+      const maxFeedbackCount = Math.max(...dataToExport.map(data => data.feedback_data.length));
+
+      for (let i = 0; i < maxFeedbackCount; i++) {
+        const feedbackIdRow = [];
+        const feedbackTextRow = [];
+
+        for (const data of dataToExport) {
+          if (i < data.feedback_data.length) {
+            const feedback = data.feedback_data[i];
+            feedbackIdRow.push(feedback.feedback_id);
+            feedbackTextRow.push(feedback.feedback_text);
+          } else {
+            feedbackIdRow.push('');
+            feedbackTextRow.push('');
+          }
+        }
+        csvContent.push('feedback_id' + (i + 1) + '#' + feedbackIdRow.join('##'));
+        csvContent.push('feedback_text' + (i + 1) + '#' + feedbackTextRow.join('##'));
+      }
+      const csvBlob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(csvBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'assigned_feedback-issues.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    exportAssignedToreDataToCSV() {
+      const csvContent = [];
+      const dataToExport = this.$store.state.toreDataToExport;
+
+      if (dataToExport.length === 0) {
+        return;
+      }
+      const issueKeys = [];
+      const issueSummaries = [];
+      const issueDescriptions = [];
+
+      for (const data of dataToExport) {
+        issueKeys.push(data.issue_key);
+        issueSummaries.push(data.issue_summary);
+        issueDescriptions.push(data.issue_description);
+      }
+      csvContent.push('issue_key#' + issueKeys.join('##'));
+      csvContent.push('issue_summary#' + issueSummaries.join('##'));
+      csvContent.push('issue_description#' + issueDescriptions.join('##'));
+
+      const maxFeedbackCount = Math.max(...dataToExport.map(data => data.feedback_data.length));
+
+      for (let i = 0; i < maxFeedbackCount; i++) {
+        const feedbackIdRow = [];
+        const feedbackTextRow = [];
+
+        for (const data of dataToExport) {
+          if (i < data.feedback_data.length) {
+            const feedback = data.feedback_data[i];
+            feedbackIdRow.push(feedback.feedback_id);
+            feedbackTextRow.push(feedback.feedback_text);
+          } else {
+            feedbackIdRow.push('');
+            feedbackTextRow.push('');
+          }
+        }
+        csvContent.push('feedback_id' + (i + 1) + '#' + feedbackIdRow.join('##'));
+        csvContent.push('feedback_text' + (i + 1) + '#' + feedbackTextRow.join('##'));
+      }
+      const csvBlob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
+      const url = URL.createObjectURL(csvBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'tore_assigned_feedback-issues.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    async getAssignedDataToExport() {
+      let selectedFeedback
+      if(this.$store.state.selectedFeedback === ""){
+        selectedFeedback = "None"
+      }else{
+        selectedFeedback = this.$store.state.selectedFeedback
+      }
+      await this.$store.dispatch("actionGetAssignedDataToExport", selectedFeedback)
+      this.exportAssignedDataToCSV()
+    },
+    async getToreAssignedDataToExport() {
+      let selectedFeedback
+      if(this.$store.state.selectedFeedback === ""){
+        selectedFeedback = "None"
+      }else{
+        selectedFeedback = this.$store.state.selectedFeedback
+      }
+      await this.$store.dispatch("actionGetToreAssignedDataToExport", selectedFeedback)
+      this.exportAssignedToreDataToCSV()
+    },
+    setNameToSave(){
+      this.typeNameToSaveData = true
+    },
+    openRestoreDataDialog(){
+      if(this.selectedData === ""){
+        this.warningMessage1 = "Error: No name selected. Please select a name"
+      }else {
+        this.warningMessage1 = ""
+        this.checkRestoreData = true
+      }
+    },
+    closeRestoreDataDialog(){
+      this.checkRestoreData = false
+    },
+    async restoreData(){
+      await this.$store.dispatch("actionGetSelectedData", this.selectedData);
+      this.getSavedDataNames()
+      this.getAllIssues()
+      this.getProjectNames()
+      this.checkRestoreData = false
+    },
+    async deleteSavedData(item){
+      await this.$store.dispatch("actionDeleteSavedData", item);
+      this.getSavedDataNames()
+    },
+    async saveData() {
+      try {
+        await this.$store.dispatch("actionSaveData", this.savedDataName);
+        this.typeNameToSaveData = false;
+        this.warningMessage = "";
+        this.getSavedDataNames()
+      } catch (error) {
+        this.warningMessage = "Error: " + error.message;
+      }
+    },
+    closeSaveDialog(){
+      this.typeNameToSaveData = false
     },
     async assignFeedbackToIssues(){
       let selectedFeedback = this.$store.state.selectedFeedback
@@ -257,6 +497,9 @@ export default {
     isLoadingData(){
       return this.$store.state.isLoadingData
     },
+    getSelectedData() {
+      return this.$store.state.selectedData
+    },
     getImportedJiraProjects(){
       // eslint-disable-next-line
       this.selectedProjects = []
@@ -270,8 +513,12 @@ export default {
     getIssues() {
       if (this.search !== "") {
         return this.filterIssues
-      } else {
-        return this.$store.state.issues
+      }else{
+        if (this.showUnassigned) {
+          return this.$store.state.issuesWithoutAssignment
+        }else{
+          return this.$store.state.issues
+        }
       }
     },
     filterIssues() {
@@ -290,6 +537,7 @@ export default {
     },
   },
   mounted() {
+    this.getSavedDataNames()
     this.getAllIssues()
     this.getProjectNames()
   },
@@ -298,20 +546,26 @@ export default {
 </script>
 
 <style>
+.select-saved-data {
+  width: 50%;
+}
 .service-button {
   position: absolute;
   top: 10px;
   right: 10px;
 }
-.import-elements {
+.import-buttons {
   display: flex;
   justify-content: space-between;
+}
+.export-buttons, .save-buttons{
+  border-bottom: 1px solid #ccc;
 }
 .element1 {
   flex: 0.7;
 }
 .element2 {
-  flex: 0.1;
+  flex: 0.2;
 }
 .select-projects{
   display: flex;
@@ -348,7 +602,7 @@ p {
   padding: 5px;
   margin-left: 5px;
 }
-.delete-all-issues{
+.delete-all-issues, .restore-data{
   text-align: center;
 }
 </style>
