@@ -110,16 +110,16 @@ export default {
   data(){
     return{
       headers: [
-        {text: "Issue Name", value: "key"},
-        {text: "Summary", value: "summary"},
-        {text: "Description", value: "description"},
-        {text: "Similarity", value: "similarity"},
+        {text: "Issue Name", value: "key", sortable: false},
+        {text: "Summary", value: "summary", sortable: false},
+        {text: "Description", value: "description", sortable: false},
+        {text: "Similarity", value: "similarity", sortable: true},
       ],
       pagination: {
         sortBy: "key",
         descending: false,
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: 111,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       paginationTore: {
@@ -166,20 +166,26 @@ export default {
     },
     filterIssues() {
       return this.$store.state.assignedIssues.filter(item => {
-        const similarityString = item.similarity.toString();
-        return item.summary.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
-            || item.key.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
-            || similarityString.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
-            || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        const summary = item.summary || "";
+        const key = item.key || "";
+        const description = item.description || "";
+        const similarity = item.similarity || "";
+        return summary.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
+            || key.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
+            || description.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
+            || similarity.toLowerCase().indexOf(this.searchIssues.toLowerCase()) > -1
       })
     },
     filterToreIssues() {
       return this.$store.state.toreAssignedIssues.filter(item => {
-        const similarityString = item.similarity.toString();
-        return item.summary.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
-            || item.key.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
-            || similarityString.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
-            || item.description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+        const summary = item.summary || "";
+        const key = item.key || "";
+        const description = item.description || "";
+        const similarity = item.similarity || "";
+        return summary.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
+            || key.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
+            || description.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
+            || similarity.toLowerCase().indexOf(this.searchToreIssues.toLowerCase()) > -1
       })
     },
   },

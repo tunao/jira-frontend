@@ -60,21 +60,15 @@
         <div class="import-elements">
           <div class="import-buttons">
             <LoadFeedbackFromDB class="element1"></LoadFeedbackFromDB>
-            <v-btn dark color="blue" class="element2" @click="openImportDialog()"> Import Issues
+            <v-btn dark :style="{ backgroundColor: blueDark }" class="element2" @click="openImportDialog()"> Import Issues
             </v-btn>
             <v-dialog class="custom-dialog" v-model="importDialog">
               <ImportJiraProject class="import-dialog" @toggleImport="toggleImport" :importDialog="importDialog"/>
               <v-btn dark color="black" @click="closeImportDialog()">CLOSE</v-btn>
             </v-dialog>
           </div>
-
-          <div class="export-buttons">
-            <v-btn dark color="blue" @click="getAssignedDataToExport()"> Export assigned Data to CSV
-            </v-btn>
-            <v-btn dark color="blue" @click="getToreAssignedDataToExport()"> Export TORE assigned Data To CSV
-            </v-btn>
-          </div>
-
+        </div>
+        <div class="export-elements">
           <div class="save-buttons">
             <v-subheader>Choose saved data or save current data</v-subheader>
             <v-select class="select-saved-data"
@@ -90,22 +84,26 @@
                 </div>
               </template>
             </v-select>
-            <v-btn @click="openRestoreDataDialog()">Show Data</v-btn>
-            <v-btn dark color="blue" @click="setNameToSave()"> Save all assignments
+            <v-btn :style="{ backgroundColor: blueFill }" @click="openRestoreDataDialog()">Show Data</v-btn>
+            <v-btn :style="{ backgroundColor: blueFill }" @click="setNameToSave()"> Save all assignments
             </v-btn>
             <p v-if="warningMessage1" style="color: red">{{warningMessage1}}</p>
+          </div>
+          <div class="export-buttons">
+            <v-subheader>Exporting Data</v-subheader>
+            <v-btn :style="{ backgroundColor: blueFill }" :class="{'assign_tore_not_allowed': !feedbackAndProjectIsSelected}" @click="getAssignedDataToExport()"> Export assigned Data to CSV </v-btn>
+            <v-btn :style="{ backgroundColor: blueFill }" :class="{'assign_tore_not_allowed': !annotationAndProjectIsSelected}" @click="getToreAssignedDataToExport()"> Export TORE assigned Data To CSV </v-btn>
           </div>
         </div>
       </v-card-title>
       <v-alert v-if="warningMessage" type="error">{{ warningMessage }}</v-alert>
-
         <v-card-title>
           <div class="container-similarity">
             <div class="button-row">
-              <v-btn dark color="blue" :class="{'assign_tore_not_allowed': !feedbackAndProjectIsSelected}"
+              <v-btn :style="{ backgroundColor: blueLight }" :class="{'assign_tore_not_allowed': !feedbackAndProjectIsSelected}"
                      @click="assignFeedbackToIssues()"> Assign Feedback to Issues
               </v-btn>
-              <v-btn dark color="blue" :class="{'assign_tore_not_allowed': !annotationAndProjectIsSelected}"
+              <v-btn :style="{ backgroundColor: blueLight }" :class="{'assign_tore_not_allowed': !annotationAndProjectIsSelected}"
                      @click="assignFeedbackToIssueWithTore()"> Assign Feedback to Issues with TORE classification
               </v-btn>
             </div>
@@ -115,7 +113,6 @@
             </div>
           </div>
         </v-card-title>
-
     </v-card>
 
     <div class="main-issue-table">
@@ -151,8 +148,15 @@
             <v-btn  @click="dialogDeleteAllIssues()" small>
               <i class="material-icons delete-icon">delete_sweep</i>
             </v-btn>
-            <v-switch v-model="showUnassigned" @change="getUnassignedIssues">
-            </v-switch>
+          </div>
+
+          <div class="switch-container">
+            <div class="label-container">
+              <label for="showUnassigned" class="label-text">Show issues without assigned reviews:</label>
+            </div>
+            <div class="switch-content">
+              <v-switch id="showUnassigned" v-model="showUnassigned" @change="getUnassignedIssues"></v-switch>
+            </div>
           </div>
         </v-card-title>
         <v-data-table :headers="headers"
@@ -189,27 +193,29 @@
 import LoadFeedbackFromDB from "@/components/LoadFeedbackFromDB.vue";
 import ImportJiraProject from "@/components/ImportJiraProject.vue";
 import LoadingView from "@/components/dialogs/LoadingView.vue";
+import { BLUE_BORDER, BLUE_LIGHT, BLUE_FILL, BLUE_DARK } from "@/colors";
 
 export default {
   // eslint-disable-next-line vue/multi-word-component-names
   name: "Issues",
   data() {
     return {
-      headersIssueTypes: [
-        {text: "Issue Type", value: "issueType"},
-      ],
+      blueBorder: BLUE_BORDER,
+      blueLight: BLUE_LIGHT,
+      blueFill: BLUE_FILL,
+      blueDark: BLUE_DARK,
       headers: [
-        {text: "Issue Name", value: "key"},
-        {text: "Summary", value: "summary"},
-        {text: "Description", value: "description"},
-        {text: "Issue Type", value: "issueType"},
-        {text: "Project Name", value: "projectName"},
+        {text: "Issue Name", value: "key", sortable: false},
+        {text: "Summary", value: "summary", sortable: false},
+        {text: "Description", value: "description", sortable: false},
+        {text: "Issue Type", value: "issueType", sortable: false},
+        {text: "Project Name", value: "projectName", sortable: false},
       ],
       pagination: {
         sortBy: "key",
         descending: false,
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: 111,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       search: "",
@@ -546,26 +552,56 @@ export default {
 </script>
 
 <style>
+.save-buttons {
+  float: left;
+  margin-right: 30px;
+  border-right: 1px solid #ccc;
+  padding-right: 80px;
+}
+
+.export-buttons {
+  float: left;
+  margin-left: 20px;
+}
 .select-saved-data {
-  width: 50%;
+  width: 70%;
+  margin-left: 10px;
 }
 .service-button {
   position: absolute;
   top: 10px;
   right: 10px;
 }
+.switch-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.label-container {
+  margin-right: 16px; /* oder einen anderen Wert für den gewünschten Abstand */
+}
+
+.label-text {
+  margin-bottom: 0; /* optional: um den unteren Abstand zu entfernen */
+}
+
+.switch-content {
+  margin-top: 8px; /* oder einen anderen Wert für den gewünschten Abstand zur nächsten Zeile */
+}
 .import-buttons {
   display: flex;
   justify-content: space-between;
 }
-.export-buttons, .save-buttons{
-  border-bottom: 1px solid #ccc;
+.import-elements, .export-elements{
+  width: 100%;
+  border-bottom: 1px solid grey;
 }
 .element1 {
-  flex: 0.7;
+  flex: 0.8;
 }
 .element2 {
-  flex: 0.2;
+  flex-shrink: 0;
 }
 .select-projects{
   display: flex;

@@ -58,7 +58,7 @@
           <v-btn  @click="deleteToreAssignedFeedbackForIssue()" small>
             <i class="material-icons delete-icon">delete_sweep</i>
           </v-btn>
-          <v-btn  @click="openAddDialogWithTore">
+          <v-btn  @click="openAddDialogWithTore" small>
             <i class="material-icons add-icon">add</i>
           </v-btn>
         </div>
@@ -104,19 +104,15 @@ export default {
   data() {
     return {
       header: [
-        {text: "Id", value: "id"},
-        {text: "Text", value: "text"},
-        {text: "Similarity", value: "similarity"},
-      ],
-      headerDialog: [
-        {text: "Id", value: "id"},
-        {text: "Text", value: "text"},
+        { text: "Id", value: "id", sortable: false },
+        { text: "Text", value: "text", sortable: false },
+        { text: "Similarity", value: "similarity", sortable: true },
       ],
       pagination: {
         sortBy: "id",
         descending: false,
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: 200,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       paginationTore: {
