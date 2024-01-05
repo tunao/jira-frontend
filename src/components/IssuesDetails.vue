@@ -3,6 +3,74 @@
     <v-dialog v-model="isLoadingData" :max-width="300">
       <LoadingView/>
     </v-dialog>
+    <div>
+      <v-dialog v-model="deleteAllFeedbackDialog" :max-width="300" class="delete-all-issues">
+        <v-card>
+          <v-card-title>
+            <h3>Are you sure you want to delete all related feedback?</h3>
+          </v-card-title>
+          <v-card-actions>
+            <v-btn color="red" @click="deleteAssignedFeedbackForIssue">
+              Delete
+            </v-btn>
+            <v-btn dark color="black" @click="dontDelete()">
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+    <div>
+      <v-dialog v-model="deleteAllTOREFeedbackDialog" :max-width="300" class="delete-all-issues">
+        <v-card>
+          <v-card-title>
+            <h3>Are you sure you want to delete all TORE related feedback?</h3>
+          </v-card-title>
+          <v-card-actions>
+            <v-btn color="red" @click="deleteToreAssignedFeedbackForIssue">
+              Delete
+            </v-btn>
+            <v-btn dark color="black" @click="dontDelete()">
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+    <div>
+      <v-dialog v-model="deleteOneFeedbackDialog" :max-width="300" class="delete-all-issues">
+        <v-card>
+          <v-card-title>
+            <h3>Are you sure you want to delete this related feedback?</h3>
+          </v-card-title>
+          <v-card-actions>
+            <v-btn color="red" @click="deleteFeedback()">
+              Delete
+            </v-btn>
+            <v-btn dark color="black" @click="dontDelete()">
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+    <div>
+      <v-dialog v-model="deleteOneTOREFeedbackDialog" :max-width="300" class="delete-all-issues">
+        <v-card>
+          <v-card-title>
+            <h3>Are you sure you want to delete this TORE related feedback?</h3>
+          </v-card-title>
+          <v-card-actions>
+            <v-btn color="red" @click="deleteToreFeedback()">
+              Delete
+            </v-btn>
+            <v-btn dark color="black" @click="dontDelete()">
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
     <button class="back-button" @click="goBack">
       <i class="material-icons">arrow_back_ios</i>
     </button>
@@ -13,12 +81,12 @@
     </div>
     <v-card class="table-header">
       <v-card-title>
-        <h3>Assigned Feedback</h3>
+        <h3>Related Feedback</h3>
         <div class="search-in-table">
           <v-text-field v-model="searchFeedback" append-icon="search" label=" Search in table..."></v-text-field>
         </div>
         <div class="service-button">
-          <v-btn  @click="deleteAssignedFeedbackForIssue()" small>
+          <v-btn  @click="openDeleteAllAssignmentsDialog()" small>
             <i class="material-icons delete-icon">delete_sweep</i>
           </v-btn>
           <v-btn  @click="openAddDialog" small>
@@ -43,19 +111,19 @@
           <td>{{ props.item.text }}</td>
           <td>{{ props.item.similarity }}</td>
           <td>
-            <i class="material-icons delete-icon" @click="deleteFeedback(props.item)">delete</i>
+            <i class="material-icons delete-icon" @click="openDeleteOneAssignmentDialog(props.item)">delete</i>
           </td>
         </template>
       </v-data-table>
     </v-card>
     <v-card>
       <v-card-title>
-        <h3>Assigned Feedback with TORE classification</h3>
+        <h3>Related Feedback with TORE</h3>
         <div class="search-in-table">
           <v-text-field v-model="searchToreFeedback" append-icon="search" label=" Search in table..."></v-text-field>
         </div>
         <div class="service-button" >
-          <v-btn  @click="deleteToreAssignedFeedbackForIssue()" small>
+          <v-btn  @click="openDeleteAllTOREAssignmentsDialog()" small>
             <i class="material-icons delete-icon">delete_sweep</i>
           </v-btn>
           <v-btn  @click="openAddDialogWithTore" small>
@@ -80,7 +148,7 @@
           <td>{{ props.item.text }}</td>
           <td>{{ props.item.similarity }}</td>
           <td>
-            <i class="material-icons delete-icon" @click="deleteToreFeedback(props.item)">delete</i>
+            <i class="material-icons delete-icon" @click="openDeleteOneTOREAssignmentDialog(props.item)">delete</i>
           </td>
         </template>
       </v-data-table>
@@ -112,14 +180,14 @@ export default {
         sortBy: "id",
         descending: false,
         page: 1,
-        rowsPerPage: 200,
+        rowsPerPage: 5,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       paginationTore: {
         sortBy: "id",
         descending: false,
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: 5,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       issue: this.item,
@@ -128,6 +196,12 @@ export default {
       searchFeedback: "",
       searchToreFeedback: "",
       warning: "No Feedback assigned",
+      deleteOneFeedbackDialog: false,
+      itemToDelete: [],
+      deleteOneTOREFeedbackDialog: false,
+      itemToDeleteTore: [],
+      deleteAllFeedbackDialog: false,
+      deleteAllTOREFeedbackDialog: false,
     }
   },
   components:{
@@ -179,13 +253,27 @@ export default {
     },
   },
   methods:{
+    dontDelete(){
+      this.deleteAllFeedbackDialog = false
+      this.deleteAllTOREFeedbackDialog = false
+      this.deleteOneTOREFeedbackDialog = false
+      this.deleteOneFeedbackDialog = false
+    },
     async deleteAssignedFeedbackForIssue() {
       await this.$store.dispatch("actionDeleteAssignedFeedbackForIssue", this.issue.key)
       this.getAssignedFeedback()
+      this.deleteAllFeedbackDialog = false
+    },
+    openDeleteAllAssignmentsDialog() {
+      this.deleteAllFeedbackDialog = true
+    },
+    openDeleteAllTOREAssignmentsDialog() {
+      this.deleteAllTOREFeedbackDialog = true
     },
     async deleteToreAssignedFeedbackForIssue() {
       await this.$store.dispatch("actionDeleteToreAssignedFeedbackForIssue", this.issue.key)
       this.getAssignedToreFeedback()
+      this.deleteAllTOREFeedbackDialog = false
     },
     goBack() {
       this.$router.go(-1);
@@ -202,17 +290,29 @@ export default {
       let size = this.paginationTore.rowsPerPage
       this.$store.dispatch("actionGetToreAssignedFeedback", {issueKey, page, size})
     },
-    async deleteFeedback(item) {
-      const feedbackId = item.id
+    openDeleteOneAssignmentDialog(item) {
+      this.deleteOneFeedbackDialog = true
+      this.itemToDelete = item
+    },
+    async deleteFeedback() {
+      const feedbackId = this.itemToDelete.id
       const issueKey = this.issue.key
       await this.$store.dispatch("actionDeleteIssueFeedbackRelation", {issueKey, feedbackId})
       this.getAssignedFeedback()
+      this.deleteOneFeedbackDialog = false
+      this.itemToDelete = []
     },
-    async deleteToreFeedback(item) {
-      const feedbackId = item.id
+    openDeleteOneTOREAssignmentDialog(item) {
+      this.deleteOneTOREFeedbackDialog = true
+      this.itemToDeleteTore = item
+    },
+    async deleteToreFeedback() {
+      const feedbackId = this.itemToDeleteTore.id
       const issueKey = this.issue.key
       await this.$store.dispatch("actionDeleteToreIssueFeedbackRelation", {issueKey, feedbackId})
       this.getAssignedToreFeedback()
+      this.deleteOneTOREFeedbackDialog = false
+      this.itemToDeleteTore = []
     },
     openAddDialogWithTore() {
       this.listWithTore = true
@@ -231,8 +331,6 @@ export default {
 };
 
 </script>
-
-
 
 <style scoped>
 h2{
@@ -253,8 +351,8 @@ h2{
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 120px;
-  left: 120px;
+  top: 220px;
+  left: 400px;
 }
 .back-button:hover {
   color: blue;
