@@ -346,13 +346,13 @@ h2{
 .back-button {
   border: none;
   border-radius: 10px;
-  padding: 10px 10px;
+  padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
   outline: none;
   position: absolute;
-  top: 220px;
-  left: 400px;
+  top: 230px;
+  left: 120px;
 }
 .back-button:hover {
   color: blue;
