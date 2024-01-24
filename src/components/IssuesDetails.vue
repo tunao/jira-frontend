@@ -180,14 +180,14 @@ export default {
         sortBy: "id",
         descending: false,
         page: 1,
-        rowsPerPage: 5,
+        rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       paginationTore: {
         sortBy: "id",
         descending: false,
         page: 1,
-        rowsPerPage: 5,
+        rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       issue: this.item,

@@ -104,7 +104,7 @@ export default {
         sortBy: "id",
         descending: false,
         page: 1,
-        rowsPerPage: 5,
+        rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       search: "",
@@ -130,7 +130,6 @@ export default {
       }else{
         this.getFeedback()
       }
-
     },
     dialogDeleteAllFeedback() {
       this.deleteAllFb = true
@@ -147,10 +146,14 @@ export default {
       }
     },
     getFeedback(){
-      let page = this.pagination.page
-      let size = this.pagination.rowsPerPage
-      let selectedFeedbackFileName = this.selectedFeedbackFileName
-      this.$store.dispatch("actionGetFeedback", {page, size, selectedFeedbackFileName})
+      if(this.showUnassigned){
+        this.getUnassignedFeedback()
+      }else{
+        let page = this.pagination.page
+        let size = this.pagination.rowsPerPage
+        let selectedFeedbackFileName = this.selectedFeedbackFileName
+        this.$store.dispatch("actionGetFeedback", {page, size, selectedFeedbackFileName})
+      }
     },
     openDeleteOneFeedbackDialog(item) {
       this.deleteOneFeedback = true
@@ -187,18 +190,29 @@ export default {
       return this.$store.state.isLoadingData
     },
     getFeedbackForFilter() {
-      if (this.search !== "") {
-        return this.filterFeedback
-      } else {
-        if (this.showUnassigned){
-          return this.$store.state.feedbackWithoutAssignment
+      if (this.showUnassigned){
+        if(this.search !== ""){
+          return this.filterUnassignedFeedback
         }else{
+          return this.$store.state.feedbackWithoutAssignment
+        }
+      }
+      else{
+        if (this.search !== "") {
+          return this.filterFeedback
+        } else {
           return this.$store.state.feedback
         }
       }
     },
     filterFeedback() {
       return this.$store.state.feedback.filter(item => {
+        return item.id.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || item.text.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+      })
+    },
+    filterUnassignedFeedback() {
+      return this.$store.state.feedbackWithoutAssignment.filter(item => {
         return item.id.toLowerCase().indexOf(this.search.toLowerCase()) > -1
             || item.text.toLowerCase().indexOf(this.search.toLowerCase()) > -1
       })

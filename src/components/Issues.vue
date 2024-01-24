@@ -266,7 +266,7 @@ export default {
         sortBy: "key",
         descending: false,
         page: 1,
-        rowsPerPage: 3,
+        rowsPerPage: 10,
         rowsPerPageItems: [5, 10, 25, 50, 100, {"text": "All", "value": -1}]
       },
       search: "",
@@ -548,10 +548,14 @@ export default {
       this.$router.push({ name: 'assigned_feedback', params: { item: item } });
     },
     getAllIssues() {
-      console.log("get All Issues")
-      let page = this.pagination.page
-      let size = this.pagination.rowsPerPage
-      this.$store.dispatch("actionGetAllIssues", {page, size})
+      if(this.showUnassigned){
+        this.getUnassignedIssues()
+      }else{
+        console.log("get All Issues")
+        let page = this.pagination.page
+        let size = this.pagination.rowsPerPage
+        this.$store.dispatch("actionGetAllIssues", {page, size})
+      }
     },
     getProjectNames() {
       this.$store.dispatch("actionGetImportedJiraProjects")
@@ -592,18 +596,39 @@ export default {
       return this.$store.state.importedJiraProjects
     },
     getIssues() {
-      if (this.search !== "") {
-        return this.filterIssues
-      }else{
-        if (this.showUnassigned) {
+      if (this.showUnassigned){
+        if(this.search !== ""){
+          return this.filterUnassignedIssues
+        }
+        else{
           return this.$store.state.issuesWithoutAssignment
-        }else{
+        }
+      }
+      else{
+        if(this.search !== ""){
+          return this.filterIssues
+        }
+        else{
           return this.$store.state.issues
         }
       }
     },
     filterIssues() {
       return this.$store.state.issues.filter(issue => {
+        const summary = issue.summary || "";
+        const key = issue.key || "";
+        const description = issue.description || "";
+        const issueType = issue.issueType || "";
+        const projectName = issue.projectName || "";
+        return summary.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || key.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || description.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || issueType.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+            || projectName.toLowerCase().indexOf(this.search.toLowerCase()) > -1
+      });
+    },
+    filterUnassignedIssues() {
+      return this.$store.state.issuesWithoutAssignment.filter(issue => {
         const summary = issue.summary || "";
         const key = issue.key || "";
         const description = issue.description || "";
